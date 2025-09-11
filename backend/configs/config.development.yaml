@@ -1,0 +1,19 @@
+server:
+  host: "localhost"
+  port: "8080"
+
+database:
+  host: "localhost"
+  port: "5432"
+  user: "postgres"
+  password: "1234"
+  name: "traveldb_dev"
+  ssl_mode: "disable"
+
+jwt:
+  secret: "dev-jwt-secret-key"
+
+app:
+  environment: "development"
+  log_level: "debug"
+  debug: true

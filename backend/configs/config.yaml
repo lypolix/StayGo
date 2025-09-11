@@ -1,0 +1,11 @@
+server:
+  read_timeout: 30
+  write_timeout: 30
+  
+jwt:
+  access_token_ttl: 3600    # 1 час
+  refresh_token_ttl: 604800 # 7 дней
+
+app:
+  name: "StayGo API"
+  version: "1.0.0"
