@@ -7,7 +7,7 @@ database:
   port: "5432"
   user: "postgres"
   password: "1234"
-  name: "traveldb_dev"
+  name: "traveldb"
   ssl_mode: "disable"
 
 jwt:
