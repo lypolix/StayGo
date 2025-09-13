@@ -17,6 +17,7 @@ type User struct {
 	Refresh       string  `db:"refresh" json:"refresh"`
 }
 
+// UserInfoDTO получение информации пользователя (надо перенести в handlers)
 type UserInfoDTO struct {
 	Name        string `json:"name"`
 	Email       string `json:"email"`
@@ -25,6 +26,7 @@ type UserInfoDTO struct {
 	CreatedAt   string `json:"created_at"`
 }
 
+// UserUpdateDTO параметры для изменения информации по пользователю (надо перенести в handlers)
 type UserUpdateDTO struct {
 	ID    int64  `json:"-"`
 	Name  string `json:"name"`

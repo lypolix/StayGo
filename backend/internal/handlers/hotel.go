@@ -1,34 +1,40 @@
 package handlers
 
 import (
-    "net/http"
-    "backend/internal/repos"
-    "backend/internal/models"
-    "github.com/gin-gonic/gin"
+	"backend/internal/models"
+	"backend/internal/services"
+	"context"
+	"github.com/gin-gonic/gin"
+	"net/http"
+	"time"
 )
 
 type HotelHandler struct {
-    Repo *repos.HotelRepo
+	hotelServ services.HotelServiceInterface
 }
 
-func NewHotelHandler(repo *repos.HotelRepo) *HotelHandler {
-    return &HotelHandler{Repo: repo}
+func NewHotelHandler(hotelServ services.HotelServiceInterface) *HotelHandler {
+	return &HotelHandler{hotelServ: hotelServ}
 }
 
 func (h *HotelHandler) Create(c *gin.Context) {
-    role, exists := c.Get("role")
-    if !exists || role != "admin" {
-        c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
-        return
-    }
-    var hotel models.Hotel
-    if err := c.ShouldBindJSON(&hotel); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-        return
-    }
-    if err := h.Repo.Create(&hotel); err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-        return
-    }
-    c.JSON(http.StatusCreated, hotel)
+	role, exists := c.Get("role")
+	if !exists || role != "admin" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	var hotel models.Hotel
+	if err := c.ShouldBindJSON(&hotel); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Неверные параметры"})
+		return
+	}
+	if err := h.hotelServ.CreateHotel(ctx, hotel); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Внутренняя ошибка сервера"})
+		return
+	}
+	c.JSON(http.StatusCreated, hotel)
 }

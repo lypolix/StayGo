@@ -3,11 +3,10 @@ package erors
 import "errors"
 
 var (
-	ErrEmailAlreadyExists = errors.New("email already exists")
-	ErrUserNotFound       = errors.New("user not found")
-	ErrEmptyInput         = errors.New("input len is null")
+	ErrUserAlreadyExists = errors.New("user already exists")
+	ErrUserNotFound      = errors.New("user not found")
 )
 
 var (
-	ErrorInternalServer = errors.New("internal error")
+	ErrInvalidCredentials = errors.New("invalid creeds")
 )
