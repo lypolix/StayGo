@@ -6,9 +6,11 @@ import (
 	"backend/internal/services"
 	"context"
 	"errors"
-	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 type AuthHandler struct {
@@ -41,6 +43,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		Password:    input.Password,
 		City:        input.City,
 		DateOfBirth: input.DateOfBirth,
+		Role:        input.Role, 
 	}
 
 	id, err := h.authService.RegisterUser(ctx, userDTO)
@@ -56,32 +59,34 @@ func (h *AuthHandler) Register(c *gin.Context) {
 
 // Login обработчик входа
 func (h *AuthHandler) Login(c *gin.Context) {
-	var input models.LoginUserDTO
+    var input models.LoginUserDTO
 
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Неверные данные запроса"})
-		return
-	}
+    if err := c.ShouldBindJSON(&input); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Неверные данные запроса"})
+        return
+    }
 
-	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
-	defer cancel()
+    ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+    defer cancel()
 
-	user, err := h.authService.LoginUser(ctx, input.Email, input.Password)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Неверные учетные данные"})
-		return
-	}
+    user, err := h.authService.LoginUser(ctx, input.Email, input.Password)
+    if err != nil {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Неверные учетные данные"})
+        return
+    }
 
-	accessToken, refreshToken, err := h.jwtService.GenerateTokenPair(&user)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Внутренняя ошибка сервера"})
-		return
-	}
+    log.Printf("User role: %s", user.Role)
 
-	response := models.AuthResponse{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
-	}
+    accessToken, refreshToken, err := h.jwtService.GenerateTokenPair(&user)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Внутренняя ошибка сервера"})
+        return
+    }
 
-	c.JSON(http.StatusOK, response)
+    response := models.AuthResponse{
+        AccessToken:  accessToken,
+        RefreshToken: refreshToken,
+    }
+
+    c.JSON(http.StatusOK, response)
 }

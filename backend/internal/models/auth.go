@@ -6,6 +6,7 @@ type CreateUserDTO struct {
 	Password    string `db:"password" json:"password"`
 	DateOfBirth string `db:"date_of_birth" json:"date_of_birth"`
 	City        string `db:"city" json:"city"`
+	Role        string `json:"role"`
 }
 
 // LoginUserDTO поля для логина (надо не забыть перенести в handlers)

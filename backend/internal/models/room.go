@@ -8,3 +8,10 @@ type Room struct {
     Description string   `db:"description" json:"description"`
     HotelID     int64    `db:"hotel_id" json:"hotel_id"`
 }
+
+type CreateRoomDTO struct {
+    HotelID     int64   `json:"hotel_id" binding:"required"`
+    Beds        int     `json:"beds" binding:"required"`
+    Price       float64 `json:"price" binding:"required"`
+    Description string  `json:"description"`
+}

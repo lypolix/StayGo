@@ -4,9 +4,11 @@ import (
 	"backend/internal/models"
 	"backend/internal/services"
 	"context"
-	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 type HotelHandler struct {
@@ -38,3 +40,31 @@ func (h *HotelHandler) Create(c *gin.Context) {
 	}
 	c.JSON(http.StatusCreated, hotel)
 }
+
+func (h *HotelHandler) List(c *gin.Context) {
+    // Логика получения списка отелей из сервиса
+    hotels, err := h.hotelServ.GetAll(c)
+    if err != nil {
+        c.JSON(500, gin.H{"error": "Failed to get hotels"})
+        return
+    }
+    c.JSON(200, hotels)
+}
+
+
+func (h *HotelHandler) GetByID(c *gin.Context) {
+    idParam := c.Param("hotel_id")
+    hotelID, err := strconv.ParseInt(idParam, 10, 64)
+    if err != nil {
+        c.JSON(400, gin.H{"error": "invalid hotel_id"})
+        return
+    }
+
+    hotel, err := h.hotelServ.GetByID(c.Request.Context(), hotelID)
+    if err != nil {
+        c.JSON(404, gin.H{"error": "hotel not found"})
+        return
+    }
+    c.JSON(200, hotel)
+}
+

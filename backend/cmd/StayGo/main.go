@@ -3,16 +3,14 @@ package main
 import (
 	"backend/internal/config"
 	"backend/internal/handlers"
+	"backend/internal/logger"
 	"backend/internal/middleware"
 	"backend/internal/repos"
 	"backend/internal/services"
-	"github.com/gin-gonic/gin"
 	"log"
 )
 
 func main() {
-	r := gin.Default()
-
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		log.Fatalf("could not load config: %v", err)
@@ -23,21 +21,39 @@ func main() {
 		log.Fatalf("could not connect to db: %v", err)
 	}
 
+	// Репозитории
 	authRepo := repos.NewAuthRepo(db)
 	userRepo := repos.NewUserInfoRepo(db)
 	hotelRepo := repos.NewHotelRepo(db)
+	favoriteRoomRepo := repos.NewFavoriteRoomRepo(db) // Имплементация должна быть создана
+	roomRepo := repos.NewRoomRepo(db)                 // Имплементация должна быть создана
 
+	// Сервисы
 	jwtService := services.NewJWTService(cfg)
-	authMiddleware := middleware.NewAuthMiddleware(jwtService)
-	authService := services.NewAuthService(cfg, authRepo)
+	authService := services.NewAuthService(cfg, authRepo, logger.NewLogger())
 	userService := services.NewUserInfoServ(userRepo)
 	hotelService := services.NewHotelService(hotelRepo)
+	favoriteRoomService := services.NewFavoriteRoomService(favoriteRoomRepo) // Имплементация должна быть создана
+	roomService := services.NewRoomService(roomRepo)                         // Имплементация должна быть создана
 
-	authhandler := handlers.NewAuthHandler(authService, jwtService)
+	// Middleware
+	authMiddleware := middleware.NewAuthMiddleware(jwtService)
+
+	// Хендлеры
+	authHandler := handlers.NewAuthHandler(authService, jwtService)
 	userHandler := handlers.NewUserHandler(userService)
 	hotelHandler := handlers.NewHotelHandler(hotelService)
+	favoriteRoomHandler := handlers.NewFavoriteRoomHandler(favoriteRoomService) // Имплементация должна быть создана
+	roomHandler := handlers.NewRoomHandler(roomService)                         // Имплементация должна быть создана
 
-	apiHandlers := NewApi(authhandler, userHandler, authMiddleware, hotelHandler)
+	// Инициализация API с новыми хендлерами
+	apiHandlers := NewApi(authHandler, userHandler, authMiddleware, hotelHandler, favoriteRoomHandler, roomHandler)
 
-	r.Run(":8080")
+	r := apiHandlers.InitRoutes()
+
+	log.Println("Starting server on port 8080")
+	err = r.Run(":8080")
+	if err != nil {
+		log.Fatalf("Server failed: %v", err)
+	}
 }

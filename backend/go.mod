@@ -2,7 +2,10 @@ module backend
 
 go 1.24.6
 
-require github.com/spf13/viper v1.21.0
+require (
+	github.com/spf13/viper v1.21.0
+	go.uber.org/zap v1.27.0
+)
 
 require (
 	github.com/bytedance/sonic v1.11.6 // indirect
@@ -24,7 +27,6 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
-	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/arch v0.8.0 // indirect
 	golang.org/x/net v0.43.0 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect

@@ -1,7 +1,6 @@
 server:
   host: "localhost"
   port: "8080"
-
 database:
   host: "localhost"
   port: "5432"
@@ -9,10 +8,8 @@ database:
   password: "1234"
   name: "traveldb"
   ssl_mode: "disable"
-
 jwt:
-  secret: "dev-jwt-secret-key"
-
+  secret: "dev-jwt-secret"
 app:
   environment: "development"
   log_level: "debug"

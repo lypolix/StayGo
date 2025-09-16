@@ -1,5 +1,7 @@
 package models
 
+import "database/sql"
+
 type User struct {
 	ID            int64   `db:"id" json:"id"`
 	Name          string  `db:"name" json:"name"`
@@ -14,7 +16,7 @@ type User struct {
 	VisitedRoomID []int64 `db:"visited_room_id" json:"visited_room_id"`
 	FavRoomsID    []int64 `db:"fav_rooms_id" json:"fav_rooms_id"`
 	FriendsID     []int64 `db:"friends_id" json:"friends_id"`
-	Refresh       string  `db:"refresh" json:"refresh"`
+	Refresh       sql.NullString   `db:"refresh" json:"refresh"`
 }
 
 // UserInfoDTO получение информации пользователя (надо перенести в handlers)
