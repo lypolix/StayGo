@@ -13,6 +13,7 @@ type Api struct {
     hotelHandler        *handlers.HotelHandler
     favoriteRoomHandler *handlers.FavoriteRoomHandler
     roomHandler         *handlers.RoomHandler
+	reviewHandler *handlers.ReviewHandler
 }
 
 func NewApi(
@@ -22,6 +23,8 @@ func NewApi(
     hotelHandler *handlers.HotelHandler,
     favoriteRoomHandler *handlers.FavoriteRoomHandler,
     roomHandler *handlers.RoomHandler,
+	reviewHandler *handlers.ReviewHandler,
+
 ) *Api {
     return &Api{
         authHandler:         authHandler,
@@ -30,6 +33,7 @@ func NewApi(
         hotelHandler:        hotelHandler,
         favoriteRoomHandler: favoriteRoomHandler,
         roomHandler:         roomHandler,
+		reviewHandler: reviewHandler,
     }
 }
 
@@ -50,7 +54,7 @@ func (a *Api) InitRoutes() *gin.Engine {
 
     hotels := router.Group("/hotels", a.authMiddleware.RequireAuth())
 	{
-    	hotels.GET("", a.hotelHandler.List) // или а другой метод, который возвращает список
+    	hotels.GET("", a.hotelHandler.List) 
     	hotels.POST("", a.hotelHandler.Create)
 		hotels.GET("/:hotel_id", a.hotelHandler.GetByID)
     	hotels.GET("/:hotel_id/rooms", a.roomHandler.ListByHotel)
@@ -69,6 +73,12 @@ func (a *Api) InitRoutes() *gin.Engine {
         favorites.DELETE("/rooms", a.favoriteRoomHandler.Remove) // удалить комнату из избранного
         favorites.GET("/rooms", a.favoriteRoomHandler.List)      // получить список избранных комнат
     }
+
+	reviews := router.Group("/reviews", a.authMiddleware.RequireAuth())
+	{
+    	reviews.POST("", a.reviewHandler.Create)           // добавить отзыв
+    	reviews.GET("", a.reviewHandler.List) // получить отзывы комнаты
+	}
 
     return router
 }

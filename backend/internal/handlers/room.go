@@ -1,14 +1,14 @@
 package handlers
 
 import (
-	"backend/internal/models"
-	"backend/internal/services"
-	"context"
-	"net/http"
-	"strconv"
-	"time"
+    "backend/internal/models"
+    "backend/internal/services"
+    "context"
+    "net/http"
+    "strconv"
+    "time"
 
-	"github.com/gin-gonic/gin"
+    "github.com/gin-gonic/gin"
 )
 
 // RoomHandler реализует обработчики для работы с комнатами
@@ -25,8 +25,9 @@ func NewRoomHandler(service services.RoomServiceInterface) *RoomHandler {
 
 // Create создает новую комнату, только для админов
 func (h *RoomHandler) Create(c *gin.Context) {
-    role, exists := c.Get("role")
-    if !exists || role != "admin" {
+    roleVal, exists := c.Get("userRole")
+    role, ok := roleVal.(string)
+    if !exists || !ok || role != "admin" {
         c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
         return
     }
@@ -40,7 +41,7 @@ func (h *RoomHandler) Create(c *gin.Context) {
     ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
     defer cancel()
 
-    err := h.roomService.CreateRoom(ctx, room)
+    err := h.roomService.CreateRoom(ctx, &room)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
         return
@@ -48,6 +49,7 @@ func (h *RoomHandler) Create(c *gin.Context) {
 
     c.JSON(http.StatusCreated, room)
 }
+
 
 // ListByHotel возвращает список комнат по отелю
 func (h *RoomHandler) ListByHotel(c *gin.Context) {
@@ -57,16 +59,15 @@ func (h *RoomHandler) ListByHotel(c *gin.Context) {
         c.JSON(http.StatusBadRequest, gin.H{"error": "invalid hotel id"})
         return
     }
-
-    rooms, err := h.roomService.ListByHotel(c.Request.Context(), hotelID)
+    rooms, err := h.roomService.GetRoomsByHotelID(c.Request.Context(), hotelID)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get rooms"})
         return
     }
-
     c.JSON(http.StatusOK, rooms)
 }
 
+// GetByID возвращает комнату по ID
 func (h *RoomHandler) GetByID(c *gin.Context) {
     roomIDStr := c.Param("room_id")
     roomID, err := strconv.ParseInt(roomIDStr, 10, 64)

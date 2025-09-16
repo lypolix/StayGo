@@ -55,7 +55,7 @@ func (a *authService) RegisterUser(ctx context.Context, dto models.CreateUserDTO
         return 0, err
     }
 
-    a.logger.Info("user registered successfully", zap.String("email", dto.Email), zap.Int64("userID", id))
+    a.logger.Info("user registered successfully", zap.String("email", dto.Email), zap.Int64("user_id", id))
     return id, nil
 }
 

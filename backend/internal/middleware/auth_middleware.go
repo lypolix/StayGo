@@ -46,11 +46,10 @@ func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
             role = "unknown"
         }
         log.Printf("[AuthMiddleware] User role from token: %s", role)
-        c.Set("role", role)
 
         c.Set("user_id", claims.UserID)
         c.Set("user_email", claims.Email)
-        c.Set("user_role", claims.Role)
+        c.Set("userRole", role)  // единый ключ роли
 
         c.Next()
     }

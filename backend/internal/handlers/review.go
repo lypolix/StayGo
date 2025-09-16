@@ -23,19 +23,42 @@ func (h *ReviewHandler) Create(c *gin.Context) {
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
+
+    userIDValue, exists := c.Get("user_id")
+    if !exists {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+        return
+    }
+    userID, ok := userIDValue.(int64)
+    if !ok {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user id"})
+        return
+    }
+
+    review.UserID = userID
+
     if err := h.Repo.Create(&review); err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
+
     c.JSON(http.StatusCreated, review)
 }
 
+
 func (h *ReviewHandler) List(c *gin.Context) {
-    roomID, err := strconv.ParseInt(c.Query("room_id"), 10, 64)
+    roomIDStr := c.Query("room_id")
+    if roomIDStr == "" {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "room_id query parameter is required"})
+        return
+    }
+
+    roomID, err := strconv.ParseInt(roomIDStr, 10, 64)
     if err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room_id"})
         return
     }
+
     reviews, err := h.Repo.List(roomID)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -43,3 +66,4 @@ func (h *ReviewHandler) List(c *gin.Context) {
     }
     c.JSON(http.StatusOK, reviews)
 }
+

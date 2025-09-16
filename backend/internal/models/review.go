@@ -11,3 +11,10 @@ type Review struct {
     Approved    bool     `db:"approved" json:"approved"`
 }
 
+
+type CreateReviewDTO struct {
+    RoomID  int64  `json:"room_id" binding:"required"`
+    UserID  int64  `json:"user_id"` // можно взять из контекста аутентификации
+    RoomRating  int    `json:"rating" binding:"required,min=1,max=5"`
+    Description string `json:"description"`
+}

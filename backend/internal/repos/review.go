@@ -14,13 +14,13 @@ func NewReviewRepo(db *sql.DB) *ReviewRepo {
 }
 
 func (r *ReviewRepo) Create(review *models.Review) error {
-    _, err := r.DB.Exec(
+    return r.DB.QueryRow(
         `INSERT INTO reviews (room_id, created_at, user_id, description, room_rating, hotel_rating, approved) 
-        VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        review.RoomID, review.CreatedAt, review.UserID, review.Description, review.RoomRating, review.HotelRating, review.Approved,
-    )
-    return err
+         VALUES ($1, NOW(), $2, $3, $4, $5, $6) RETURNING id`,
+        review.RoomID, review.UserID, review.Description, review.RoomRating, review.HotelRating, review.Approved,
+    ).Scan(&review.ID)
 }
+
 
 func (r *ReviewRepo) List(roomID int64) ([]models.Review, error) {
     rows, err := r.DB.Query(`SELECT id, room_id, created_at, user_id, description, room_rating, hotel_rating, approved FROM reviews WHERE room_id = $1`, roomID)
