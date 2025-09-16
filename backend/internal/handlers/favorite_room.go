@@ -1,9 +1,11 @@
 package handlers
 
 import (
-    "net/http"
-    "backend/internal/services"
-    "github.com/gin-gonic/gin"
+	"backend/internal/services"
+	"net/http"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 type FavoriteRoomHandler struct {
@@ -46,21 +48,21 @@ func (h *FavoriteRoomHandler) Remove(c *gin.Context) {
         return
     }
 
-    var input struct {
-        RoomID int64 `json:"room_id"`
-    }
-    if err := c.ShouldBindJSON(&input); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+    roomIDStr := c.Param("room_id")
+    roomID, err := strconv.ParseInt(roomIDStr, 10, 64)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid room_id"})
         return
     }
 
-    if err := h.service.RemoveFromFavorites(c.Request.Context(), userID.(int64), input.RoomID); err != nil {
+    if err := h.service.RemoveFromFavorites(c.Request.Context(), userID.(int64), roomID); err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot remove from favorites"})
         return
     }
 
     c.Status(http.StatusNoContent)
 }
+
 
 // Получить список избранных комнат пользователя
 func (h *FavoriteRoomHandler) List(c *gin.Context) {

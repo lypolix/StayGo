@@ -54,7 +54,7 @@ func (a *Api) InitRoutes() *gin.Engine {
 
     hotels := router.Group("/hotels", a.authMiddleware.RequireAuth())
 	{
-    	hotels.GET("", a.hotelHandler.List) 
+    	hotels.GET("", a.hotelHandler.List) // 
     	hotels.POST("", a.hotelHandler.Create)
 		hotels.GET("/:hotel_id", a.hotelHandler.GetByID)
     	hotels.GET("/:hotel_id/rooms", a.roomHandler.ListByHotel)
@@ -69,9 +69,9 @@ func (a *Api) InitRoutes() *gin.Engine {
 
     favorites := router.Group("/favorites", a.authMiddleware.RequireAuth())
     {
-        favorites.POST("/rooms", a.favoriteRoomHandler.Add)      // добавить комнату в избранное
-        favorites.DELETE("/rooms", a.favoriteRoomHandler.Remove) // удалить комнату из избранного
-        favorites.GET("/rooms", a.favoriteRoomHandler.List)      // получить список избранных комнат
+        favorites.POST("", a.favoriteRoomHandler.Add)      // добавить комнату в избранное
+        favorites.DELETE("/:room_id", a.favoriteRoomHandler.Remove) // удалить комнату из избранного
+        favorites.GET("", a.favoriteRoomHandler.List)      // получить список избранных комнат
     }
 
 	reviews := router.Group("/reviews", a.authMiddleware.RequireAuth())
