@@ -42,6 +42,7 @@ export interface Hotel extends BaseEntity {
 
 // Room type
 export interface Room extends BaseEntity {
+  room_id: number;
   hotelId: string;
   name: string;
   description: string;

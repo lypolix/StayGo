@@ -31,7 +31,8 @@ import {
   Input,
 } from '@chakra-ui/react';
 import { FaMapMarkerAlt, FaChevronLeft, FaChevronRight, FaHeart, FaRegHeart, FaBed } from 'react-icons/fa';
-import { useGetHotelByIdQuery, useGetSimilarHotelsQuery, useToggleFavoriteMutation } from '../api';
+import { useGetHotelByIdQuery, useGetSimilarHotelsQuery } from '../api';
+import { useAddToFavoritesMutation, useRemoveFromFavoritesMutation } from '@/app/api/favoriteApi';
 import { HotelCard } from '../components/HotelCard';
 import { Rating } from '@/shared/components/Rating';
 
@@ -50,18 +51,30 @@ export const HotelDetailPage = () => {
     { hotelId: id || '', limit: 4 },
     { skip: !id }
   );
-  const [toggleFavorite] = useToggleFavoriteMutation();
+  const [addToFavorites] = useAddToFavoritesMutation();
+  const [removeFromFavorites] = useRemoveFromFavoritesMutation();
 
   const handleFavoriteToggle = async () => {
-    if (!id) return;
+    if (!id || !hotel) return;
+    
     try {
-      await toggleFavorite(id).unwrap();
-      toast({
-        title: hotel?.isFavorite ? 'Removed from favorites' : 'Added to favorites',
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      });
+      if (hotel.isFavorite) {
+        await removeFromFavorites({ room_id: parseInt(id) }).unwrap();
+        toast({
+          title: 'Removed from favorites',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        await addToFavorites({ room_id: parseInt(id) }).unwrap();
+        toast({
+          title: 'Added to favorites',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+      }
     } catch (error) {
       toast({
         title: 'Failed to update favorites',

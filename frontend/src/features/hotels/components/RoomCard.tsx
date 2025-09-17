@@ -15,12 +15,15 @@ import {
   useBreakpointValue,
   Image,
   Heading,
+  useToast,
+  IconButton,
 } from '@chakra-ui/react';
 import { ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
-import { FaBed, FaRuler, FaUsers, FaWifi, FaTv, FaUtensils, FaSwimmingPool, FaSnowflake, FaWineGlassAlt } from 'react-icons/fa';
+import { FaBed, FaRuler, FaUsers, FaWifi, FaTv, FaSnowflake, FaWineGlassAlt, FaHeart, FaRegHeart } from 'react-icons/fa';
 import type { Room } from '@/shared/types';
 import { formatCurrency } from '@/utils/formatters';
 import type { BoxProps } from '@chakra-ui/react';
+import { useAddToFavoritesMutation, useRemoveFromFavoritesMutation } from '@/app/api/favoriteApi';
 
 interface RoomCardProps extends BoxProps {
   room: Room;
@@ -31,6 +34,7 @@ interface RoomCardProps extends BoxProps {
   checkInDate?: string | null;
   checkOutDate?: string | null;
   guestCount?: number;
+  refetchFavorites?: () => void;
 }
 
 export const RoomCard = ({
@@ -42,13 +46,63 @@ export const RoomCard = ({
   checkInDate,
   checkOutDate,
   guestCount = 1,
+  refetchFavorites,
   ...props
 }: RoomCardProps) => {
   const { isOpen, onToggle } = useDisclosure({ defaultIsOpen: false });
   const isMobile = useBreakpointValue({ base: true, md: false });
+  const toast = useToast();
+  const [addToFavorites] = useAddToFavoritesMutation();
+  const [removeFromFavorites] = useRemoveFromFavoritesMutation();
   
   const availableRooms = room.availableRooms || 0;
   const isAvailable = availableRooms > 0;
+  
+  const handleFavoriteClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!isAuthenticated) {
+      toast({
+        title: 'Please sign in to add to favorites',
+        status: 'warning',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+    
+    try {
+      if (room.isFavorite) {
+        await removeFromFavorites({ room_id: parseInt(room.id) }).unwrap();
+        toast({
+          title: 'Removed from favorites',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        await addToFavorites({ room_id: parseInt(room.id) }).unwrap();
+        toast({
+          title: 'Added to favorites',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+      
+      // Refresh the favorites list if a refetch function is provided
+      if (refetchFavorites) {
+        refetchFavorites();
+      }
+    } catch (error) {
+      toast({
+        title: 'Failed to update favorites',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
   
   const roomAmenities = [
     { icon: FaBed, label: `${room.bedType} bed` },
@@ -120,19 +174,23 @@ export const RoomCard = ({
               Sold Out
             </Box>
           )}
-          {room.isFavorite && (
-            <Badge 
-              position="absolute" 
-              top={2} 
-              right={2} 
-              colorScheme="red"
-              borderRadius="full"
-              px={2}
-              py={1}
-            >
-              Favorite
-            </Badge>
-          )}
+          
+          {/* Favorite Button */}
+          <IconButton
+            aria-label={room.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            icon={room.isFavorite ? <FaHeart color="red" /> : <FaRegHeart />}
+            position="absolute"
+            top={2}
+            right={2}
+            bg="white"
+            color="gray.800"
+            _hover={{ bg: 'gray.100' }}
+            onClick={handleFavoriteClick}
+            borderRadius="full"
+            boxShadow="md"
+            size="sm"
+          />
+          
           <Badge 
             position="absolute" 
             bottom={2} 
