@@ -1,11 +1,13 @@
-import { useState } from 'react';
+
+// Будет дорабатываться
+
+//import { useState } from 'react';
 import { 
   Box, 
   VStack, 
   HStack, 
   Text, 
   Button, 
-  Divider, 
   Badge, 
   Collapse, 
   useDisclosure, 
@@ -90,7 +92,7 @@ export const RoomCard = ({
         });
       }
       
-      // Refresh the favorites list if a refetch function is provided
+      // Обновление списка избранного, когда будет функция обновления
       if (refetchFavorites) {
         refetchFavorites();
       }
@@ -137,7 +139,7 @@ export const RoomCard = ({
       {...props}
     >
       <Flex direction={{ base: 'column', md: 'row' }}>
-        {/* Room Image */}
+        {/* Изображение номера */}
         <Box 
           width={{ base: '100%', md: '300px' }} 
           height={{ base: '200px', md: 'auto' }}
@@ -175,9 +177,9 @@ export const RoomCard = ({
             </Box>
           )}
           
-          {/* Favorite Button */}
+          {/* Кнопка избранного */}
           <IconButton
-            aria-label={room.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            aria-label={room.isFavorite ? 'Удалить из избранного' : 'Добавить в избранное'}
             icon={room.isFavorite ? <FaHeart color="red" /> : <FaRegHeart />}
             position="absolute"
             top={2}
@@ -204,7 +206,7 @@ export const RoomCard = ({
           </Badge>
         </Box>
 
-        {/* Room Details */}
+        {/* Параметры номера */}
         <Flex flex={1} direction="column" p={{ base: 4, md: 6 }}>
           <Flex direction={{ base: 'column', md: 'row' }} justify="space-between" mb={4}>
             <Box>
@@ -215,7 +217,7 @@ export const RoomCard = ({
                 {room.description}
               </Text>
               
-              {/* Room features */}
+              {/* Особенности номера */}
               <SimpleGrid columns={{ base: 2, sm: 3, md: 4 }} spacing={2} mt={3}>
                 {roomAmenities.slice(0, isMobile ? 2 : 4).map((amenity, index) => (
                   <HStack key={index} spacing={2}>
@@ -233,7 +235,7 @@ export const RoomCard = ({
               </SimpleGrid>
             </Box>
 
-            {/* Price and Book Now */}
+            {/* Цена и кнопка бронирования */}
             <VStack 
               align={{ base: 'flex-start', md: 'flex-end' }} 
               spacing={2}
@@ -263,23 +265,23 @@ export const RoomCard = ({
                   onClick={handleBookNow}
                   isDisabled={!isAvailable}
                 >
-                  {isAuthenticated ? 'Book Now' : 'Sign in to Book'}
+                  {isAuthenticated ? 'Забронировать' : 'Войдите, чтобы забронировать'}
                 </Button>
               ) : (
                 <Text color="red.500" fontSize="sm" fontWeight="medium">
-                  Not available for selected dates
+                  Недоступно для выбранных дат
                 </Text>
               )}
               
               {availableRooms > 0 && availableRooms < 5 && (
                 <Text color="orange.500" fontSize="sm" fontWeight="medium">
-                  Only {availableRooms} {availableRooms === 1 ? 'room' : 'rooms'} left!
+                  Only {availableRooms} {availableRooms === 1 ? 'номер' : 'номеров'} left!
                 </Text>
               )}
             </VStack>
           </Flex>
 
-          {/* Toggle more details */}
+          {/* Показать больше деталей */}
           <Box mt="auto" pt={4} borderTopWidth="1px" borderTopColor="gray.100">
             <Button
               variant="ghost"
@@ -292,19 +294,19 @@ export const RoomCard = ({
               px={0}
               _hover={{ bg: 'transparent', color: 'blue.500' }}
             >
-              {isOpen ? 'Show less' : 'Show more details'}
+              {isOpen ? 'Показать меньше' : 'Показать больше'}
             </Button>
           </Box>
         </Flex>
       </Flex>
 
-      {/* Collapsible content */}
+      {/* Свертываемое содержимое */}
       <Collapse in={isOpen} animateOpacity>
         <Box p={6} pt={0} borderTopWidth="1px" borderTopColor="gray.100">
           <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-            {/* Room amenities */}
+            {/* Удобства в номере */}
             <Box>
-              <Heading size="sm" mb={3} color="gray.700">Room Amenities</Heading>
+              <Heading size="sm" mb={3} color="gray.700">Удобства в номере</Heading>
               <SimpleGrid columns={1} spacing={2}>
                 {roomAmenities.map((amenity, index) => (
                   <HStack key={index} spacing={3}>
@@ -317,25 +319,25 @@ export const RoomCard = ({
               </SimpleGrid>
             </Box>
 
-            {/* Cancellation policy */}
+            {/* Политика отмены */}
             <Box>
-              <Heading size="sm" mb={3} color="gray.700">Cancellation Policy</Heading>
+              <Heading size="sm" mb={3} color="gray.700">Политика отмены</Heading>
               <VStack align="start" spacing={2}>
                 <HStack spacing={2} color="green.600">
                   <Box as="span" fontSize="lg">✓</Box>
-                  <Text fontSize="sm">Free cancellation until {room.freeCancellationBefore} days before check-in</Text>
+                  <Text fontSize="sm">Бесплатная отмена до {room.freeCancellationBefore} дней до заезда</Text>
                 </HStack>
                 <Text fontSize="sm" color="gray.600">
-                  After that, {room.cancellationPolicy || 'no refund will be provided for cancellations.'}
+                  После этого, {room.cancellationPolicy || 'возврат денежных средств за отмену невозможен.'}
                 </Text>
               </VStack>
             </Box>
           </SimpleGrid>
 
-          {/* Special offers */}
+          {/* Специальные предложения */}
           {room.specialOffers && room.specialOffers.length > 0 && (
             <Box mt={6}>
-              <Heading size="sm" mb={3} color="gray.700">Special Offers</Heading>
+              <Heading size="sm" mb={3} color="gray.700">Специальные предложения</Heading>
               <VStack align="stretch" spacing={3}>
                 {room.specialOffers.map((offer, index) => (
                   <Box 

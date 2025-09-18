@@ -1,11 +1,11 @@
-// Base entity interface with common fields
+// Интерфейс BaseEntity с общими полями
 export interface BaseEntity {
   id: string;
   createdAt: string;
   updatedAt: string;
 }
 
-// Address type for locations
+// Интерфейс Address для локации
 export interface Address {
   street: string;
   city: string;
@@ -16,7 +16,7 @@ export interface Address {
   longitude?: number;
 }
 
-// Image type for hotel and room images
+// Интерфейс Image для отеля и номера
 export interface Image {
   id: string;
   url: string;
@@ -24,7 +24,7 @@ export interface Image {
   isPrimary: boolean;
 }
 
-// Hotel type
+// Интерфейс Hotel для отеля
 export interface Hotel extends BaseEntity {
   name: string;
   description: string;
@@ -38,9 +38,10 @@ export interface Hotel extends BaseEntity {
   availableRooms: number;
   rating: number;
   reviewCount: number;
+  reviews?: Review[];
 }
 
-// Room type
+// Интерфейс Room для номера
 export interface Room extends BaseEntity {
   room_id: number;
   hotelId: string;
@@ -53,11 +54,11 @@ export interface Room extends BaseEntity {
   availableRooms: number;
   amenities: string[];
   images: Image[];
-  size: string; // e.g., '300 sq.ft'
-  bedType: string; // e.g., 'King', 'Queen', 'Twin'
+  size: string; // например, '300 sq.ft'
+  bedType: string; // например, 'King', 'Queen', 'Twin'
   isFavorite?: boolean;
-  freeCancellationBefore?: number; // Days before check-in when free cancellation is available
-  cancellationPolicy?: string; // Description of the cancellation policy
+  freeCancellationBefore?: number; // Дней до заезда, когда доступна бесплатная отмена
+  cancellationPolicy?: string; // Описание политики отмены
   specialOffers?: Array<{
     id: string;
     title: string;
@@ -67,7 +68,7 @@ export interface Room extends BaseEntity {
   }>;
 }
 
-// Review type
+// Интерфейс Review для отзыва
 export interface Review extends BaseEntity {
   userId: string;
   userName: string;
@@ -84,7 +85,7 @@ export interface Review extends BaseEntity {
   };
 }
 
-// Booking type
+// Интерфейс Booking для бронирования
 export interface Booking extends BaseEntity {
   userId: string;
   roomId: string;
@@ -100,7 +101,7 @@ export interface Booking extends BaseEntity {
   specialRequests?: string;
 }
 
-// User type (extended from auth types)
+// Интерфейс User для пользователя (расширенный из типов авторизации)
 export interface User extends BaseEntity {
   email: string;
   name: string;
@@ -126,7 +127,7 @@ export interface User extends BaseEntity {
   };
 }
 
-// Search parameters
+// Интерфейс SearchParams для параметров поиска
 export interface SearchParams {
   destination?: string;
   checkInDate?: string;
@@ -142,7 +143,7 @@ export interface SearchParams {
   limit?: number;
 }
 
-// API response wrapper
+// Интерфейс ApiResponse для обертки API ответа
 export interface ApiResponse<T> {
   success: boolean;
   data: T;
@@ -155,7 +156,7 @@ export interface ApiResponse<T> {
   };
 }
 
-// Pagination params
+// Интерфейс PaginationParams для параметров пагинации
 export interface PaginationParams {
   page?: number;
   limit?: number;
@@ -163,7 +164,7 @@ export interface PaginationParams {
   sortOrder?: 'asc' | 'desc';
 }
 
-// Common form field props
+// Интерфейс FormFieldProps для общих свойств поля формы
 export interface FormFieldProps {
   name: string;
   label?: string;

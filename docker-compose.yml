@@ -44,6 +44,7 @@ services:
       DB_NAME: traveldb
       JWT_SECRET: "dev-jwt-secret"
       APP_ENV: development
+      CORS_ALLOWED_ORIGINS: "http://localhost:3000"
     ports:
       - "8080:8080"
     depends_on:
@@ -54,6 +55,15 @@ services:
     volumes:
       - ./backend/configs:/app/configs:ro
     command: ["./StayGo"]  # Укажите имя вашего собранного бинарника здесь, если отличается - поменяйте
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
 
 volumes:
   pgdata:

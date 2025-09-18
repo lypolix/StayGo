@@ -1,11 +1,11 @@
 /**
- * Utility functions for date formatting and manipulation
+ * Утилиты для работы с датами
  */
 
 /**
- * Formats a date string from YYYY-MM-DD to dd.mm.yyyy
- * @param dateString Date string in YYYY-MM-DD format
- * @returns Formatted date string in dd.mm.yyyy format or empty string if input is invalid
+ * Форматирует строку даты из формата YYYY-MM-DD в dd.mm.yyyy
+ * @param dateString Строка даты в формате YYYY-MM-DD
+ * @returns Отформатированная строка даты в формате dd.mm.yyyy или пустая строка, если ввод недействителен
  */
 export const formatDateToDisplay = (dateString: string): string => {
   if (!dateString) return '';
@@ -14,9 +14,9 @@ export const formatDateToDisplay = (dateString: string): string => {
 };
 
 /**
- * Parses a date string from dd.mm.yyyy to YYYY-MM-DD
- * @param displayDate Date string in dd.mm.yyyy format
- * @returns Date string in YYYY-MM-DD format or empty string if input is invalid
+ * Преобразует строку даты из формата dd.mm.yyyy в YYYY-MM-DD
+ * @param displayDate Строка даты в формате dd.mm.yyyy
+ * @returns Строка даты в формате YYYY-MM-DD или пустая строка, если ввод недействителен
  */
 export const parseDisplayDate = (displayDate: string): string => {
   if (!displayDate) return '';
@@ -25,14 +25,9 @@ export const parseDisplayDate = (displayDate: string): string => {
 };
 
 /**
- * Formats a number of guests with correct Russian plural form
- * @param n Number of guests
- * @returns Formatted string with correct plural form (гость/гостя/гостей)
+ * Форматирует количество гостей с правильной формой русского языка
+ * @param n Количество гостей
+ * @returns Отформатированная строка с правильной формой (гость/гостя/гостей)
  */
-export const pluralGuests = (n: number): string => {
-  const mod10 = n % 10;
-  const mod100 = n % 100;
-  if (mod10 === 1 && mod100 !== 11) return 'гость';
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'гостя';
-  return 'гостей';
-};
+export { pluralGuests } from './plural';
+

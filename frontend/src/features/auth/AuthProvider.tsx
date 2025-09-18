@@ -1,6 +1,6 @@
 import { type ReactNode, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useGetMeQuery } from './api';
+import { useGetMeQuery } from '../../app/api/api';
 import { setCredentials, logout } from './authSlice';
 import { type AppDispatch, type RootState } from '@/app/store';
 import { getAccessToken } from '@/utils/auth';

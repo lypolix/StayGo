@@ -1,27 +1,23 @@
-# Пример для образа Go backend
-
-FROM golang:1.20-alpine as builder
-
+# Build stage
+FROM node:20-alpine AS builder
 WORKDIR /app
 
-COPY go.mod go.sum ./
-RUN go mod download
+COPY package.json package-lock.json* pnpm-lock.yaml* yarn.lock* ./
+RUN if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; \
+    elif [ -f pnpm-lock.yaml ]; then npm i -g pnpm && pnpm i --frozen-lockfile; \
+    elif [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
+    else npm i; fi
 
 COPY . .
 
-# Сборка приложения
-RUN CGO_ENABLED=0 GOOS=linux go build -o main ./cmd/StayGo
+#ARG VITE_API_BASE_URL=http://backend:8080
+#ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
 
-FROM alpine:latest
+RUN npm run build
 
-WORKDIR /app
-
-# Копируем собранный бинарник
-COPY --from=builder /app/main .
-
-# Копируем папку с конфигами
-COPY --from=builder /app/configs ./configs
-
-EXPOSE 8080
-
-CMD ["./main"]
+# Runtime stage
+FROM nginx:1.27-alpine AS runtime
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

@@ -1,18 +1,18 @@
-// Types
+// Типы
 export * from './types';
 
 // API
 import { userApi } from '@/app/api/userApi';
 export { userApi };
 
-// Pages
+// Страницы
 export { default as ProfilePage } from './pages/ProfilePage';
 
-// Components
-// Export any user-related components here
+// Компоненты
+// экспорт любых компонентов, относящихся к пользователю
 
-// Hooks
+// Хуки
 export { useUser } from './hooks/useUser';
 
-// If you have a user slice, export it here
+// Если будет пользовательский слайс, экспорт здесь
 // export { default as userReducer, userActions } from './userSlice';

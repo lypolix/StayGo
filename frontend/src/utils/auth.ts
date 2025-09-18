@@ -1,4 +1,4 @@
-// auth.ts - Utility functions for handling authentication
+// Утилиты для работы с аутентификацией
 
 export const setAuthTokens = (accessToken: string, refreshToken: string) => {
   localStorage.setItem('access_token', accessToken);

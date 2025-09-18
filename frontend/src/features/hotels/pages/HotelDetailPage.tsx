@@ -1,4 +1,6 @@
-import { useState } from 'react';
+// Будет дорабатываться
+
+import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -14,7 +16,6 @@ import {
   Skeleton,
   Stack,
   Tab,
-  TabList,
   TabPanel,
   TabPanels,
   Tabs,
@@ -26,27 +27,35 @@ import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
-  Avatar,
   useColorModeValue,
   Input,
+  AspectRatio,
+  TabList,
 } from '@chakra-ui/react';
-import { FaMapMarkerAlt, FaChevronLeft, FaChevronRight, FaHeart, FaRegHeart, FaBed } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaChevronLeft, FaChevronRight, FaHeart, FaRegHeart, FaWifi } from 'react-icons/fa';
 import { useGetHotelByIdQuery, useGetSimilarHotelsQuery } from '../api';
 import { useAddToFavoritesMutation, useRemoveFromFavoritesMutation } from '@/app/api/favoriteApi';
 import { HotelCard } from '../components/HotelCard';
 import { Rating } from '@/shared/components/Rating';
+import type { HotelDetails, RoomTypeUI, ReviewUI } from '../types';
 
 export const HotelDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const toast = useToast();
   const [selectedImage, setSelectedImage] = useState(0);
-  const [activeTab, setActiveTab] = useState(0);
+  //const [activeTab, setActiveTab] = useState('overview');
   const isMobile = useBreakpointValue({ base: true, md: false });
   const cardBg = useColorModeValue('white', 'gray.800');
-  const borderColor = useColorModeValue('gray.200', 'gray.700');
+  //const borderColor = useColorModeValue('gray.200', 'gray.700');
 
-  const { data: hotel, isLoading, isError } = useGetHotelByIdQuery(id || '');
+  const { data: rawHotel, isLoading, isError } = useGetHotelByIdQuery(id || '');
+  const hotel = rawHotel as HotelDetails | undefined;
+
+  const amenities = useMemo(() => hotel?.amenities ?? [], [hotel?.amenities]);
+  const roomTypes = useMemo(() => hotel?.roomTypes ?? [], [hotel?.roomTypes]);
+  const reviews = useMemo(() => hotel?.reviews ?? [], [hotel?.reviews]);
+
   const { data: similarHotels } = useGetSimilarHotelsQuery(
     { hotelId: id || '', limit: 4 },
     { skip: !id }
@@ -118,7 +127,7 @@ export const HotelDetailPage = () => {
 
   return (
     <Box>
-      {/* Image Gallery */}
+      {/* Галерея изображений */}
       <Box position="relative" height={{ base: '300px', md: '500px' }} overflow="hidden">
         <Image
           src={mainImage?.url || 'https://via.placeholder.com/1200x500?text=No+Image'}
@@ -177,10 +186,10 @@ export const HotelDetailPage = () => {
       <Container maxW="container.xl" py={8}>
         <Breadcrumb mb={6} fontSize="sm">
           <BreadcrumbItem>
-            <BreadcrumbLink href="/">Home</BreadcrumbLink>
+            <BreadcrumbLink href="/">Главная</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbItem>
-            <BreadcrumbLink href="/search">Hotels</BreadcrumbLink>
+            <BreadcrumbLink href="/search">Отели</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbItem isCurrentPage>
             <BreadcrumbLink>{hotel.name}</BreadcrumbLink>
@@ -206,162 +215,102 @@ export const HotelDetailPage = () => {
                   <Text as="span" fontSize="md" fontWeight="normal" color="gray.500">/night</Text>
                 </Text>
                 <Button colorScheme="brand" mt={2} size={isMobile ? 'md' : 'lg'}>
-                  Book Now
+                  Забронировать
                 </Button>
               </Box>
             </Flex>
             
-            <Tabs index={activeTab} onChange={setActiveTab} colorScheme="brand" isLazy>
+            <Tabs variant="enclosed" colorScheme="brand" defaultIndex={0}>
               <TabList>
-                <Tab>Overview</Tab>
-                <Tab>Rooms</Tab>
-                <Tab>Amenities</Tab>
-                <Tab>Reviews</Tab>
+                <Tab>Обзор</Tab>
+                <Tab>Номера</Tab>
+                <Tab>Отзывы</Tab>
               </TabList>
               
-              <TabPanels py={6}>
+              <TabPanels>
                 <TabPanel px={0}>
-                  <Text mb={6} fontSize="lg" lineHeight="tall">
-                    {hotel.description || 'No description available.'}
-                  </Text>
-                  
-                  <Heading size="md" mb={4}>
-                    Popular Amenities
-                  </Heading>
-                  <SimpleGrid columns={{ base: 2, md: 3 }} spacing={4} mb={8}>
-                    {hotel.amenities.slice(0, 6).map((amenity) => (
-                      <HStack key={amenity} spacing={3}>
-                        <Box w="5" h="5" bg="brand.100" borderRadius="md" display="flex" alignItems="center" justifyContent="center">
-                          <Text fontSize="xs" color="brand.600">{amenity.charAt(0).toUpperCase()}</Text>
-                        </Box>
-                        <Text textTransform="capitalize">{amenity}</Text>
-                      </HStack>
-                    ))}
-                  </SimpleGrid>
+                  <VStack align="stretch" spacing={6}>
+                    <Box>
+                      <Heading size="md" mb={4}>Описание</Heading>
+                      <Text>{hotel.description}</Text>
+                    </Box>
+                    
+                    <Box>
+                      <Heading size="md" mb={4}>Удобства</Heading>
+                      <SimpleGrid columns={{ base: 2, md: 3 }} spacing={4}>
+                        {amenities.slice(0, 6).map((amenity, index) => (
+                          <HStack key={index} spacing={3}>
+                            <Icon as={FaWifi} color="brand.500" />
+                            <Text>{amenity}</Text>
+                          </HStack>
+                        ))}
+                      </SimpleGrid>
+                    </Box>
+                  </VStack>
                 </TabPanel>
-                
+
                 <TabPanel px={0}>
-                  <VStack spacing={6} align="stretch">
-                    {hotel.roomTypes.length > 0 ? (
-                      hotel.roomTypes.map((room) => (
-                        <Box
-                          key={room.id}
-                          borderWidth="1px"
-                          borderRadius="lg"
-                          overflow="hidden"
-                          bg={cardBg}
-                        >
-                          <Grid templateColumns={{ base: '1fr', md: '250px 1fr auto' }}>
-                            <Box h="200px">
-                              <Image
-                                src={room.images[0]?.url || 'https://via.placeholder.com/300x200?text=No+Image'}
-                                alt={room.name}
-                                objectFit="cover"
-                                w="100%"
-                                h="100%"
-                              />
-                            </Box>
-                            
-                            <Box p={6}>
-                              <Heading as="h3" size="md" mb={2}>
-                                {room.name}
-                              </Heading>
-                              <Text color="gray.600" mb={4} noOfLines={2}>
-                                {room.description}
+                  {roomTypes.length > 0 ? (
+                    <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+                      {roomTypes.map((room: RoomTypeUI) => (
+                        <Box key={room.id} borderWidth="1px" borderRadius="lg" overflow="hidden">
+                          <AspectRatio ratio={16 / 9}>
+                            <Image
+                              src={room.images?.[0]?.url || 'https://via.placeholder.com/300x200?text=No+Image'}
+                              alt={room.name}
+                              objectFit="cover"
+                            />
+                          </AspectRatio>
+                          <Box p={4}>
+                            <Heading size="md" mb={2}>{room.name}</Heading>
+                            <Text color="gray.600" mb={4}>{room.description}</Text>
+                            <HStack justify="space-between">
+                              <VStack align="flex-start" spacing={1}>
+                                <Text fontSize="sm">Максимальное количество гостей: {room.maxOccupancy}</Text>
+                                <Text fontSize="sm">Доступно: {room.availableRooms} номеров</Text>
+                              </VStack>
+                              <Text fontSize="xl" fontWeight="bold" color="brand.500">
+                                ${room.pricePerNight}
                               </Text>
-                              <HStack spacing={4} mb={2}>
-                                <HStack>
-                                  <Icon as={FaBed} color="brand.500" />
-                                  <Text fontSize="sm">Max {room.maxOccupancy} {room.maxOccupancy === 1 ? 'guest' : 'guests'}</Text>
-                                </HStack>
-                              </HStack>
-                              {room.availableRooms <= 5 && room.availableRooms > 0 && (
-                                <Text color="red.500" fontSize="sm" fontWeight="medium">
-                                  Only {room.availableRooms} {room.availableRooms === 1 ? 'room' : 'rooms'} left!
-                                </Text>
-                              )}
-                            </Box>
-                            
-                            <Flex
-                              direction="column"
-                              justify="space-between"
-                              p={6}
-                              borderLeft={{ base: 'none', md: '1px solid' }}
-                              borderTop={{ base: '1px solid', md: 'none' }}
-                              borderColor={borderColor}
-                              minW={{ md: '180px' }}
-                            >
-                              <Box textAlign={{ base: 'left', md: 'right' }} mb={4}>
-                                <Text fontSize="xl" fontWeight="bold" color="brand.500">
-                                  ${room.pricePerNight}
-                                </Text>
-                                <Text fontSize="sm" color="gray.500">per night</Text>
-                              </Box>
-                              
-                              <Button
-                                colorScheme="brand"
-                                size={isMobile ? 'sm' : 'md'}
-                                isDisabled={room.availableRooms === 0}
-                              >
-                                {room.availableRooms > 0 ? 'Book Now' : 'Sold Out'}
-                              </Button>
-                            </Flex>
-                          </Grid>
-                        </Box>
-                      ))
-                    ) : (
-                      <Box textAlign="center" py={10}>
-                        <Text color="gray.500">No room types available.</Text>
-                      </Box>
-                    )}
-                  </VStack>
-                </TabPanel>
-                
-                <TabPanel px={0}>
-                  <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-                    {hotel.amenities.map((amenity) => (
-                      <HStack key={amenity} spacing={3} align="flex-start">
-                        <Box w="6" h="6" bg="brand.100" borderRadius="md" display="flex" alignItems="center" justifyContent="center">
-                          <Text fontSize="xs" color="brand.600">{amenity.charAt(0).toUpperCase()}</Text>
-                        </Box>
-                        <Text textTransform="capitalize">{amenity}</Text>
-                      </HStack>
-                    ))}
-                  </SimpleGrid>
-                </TabPanel>
-                
-                <TabPanel px={0}>
-                  <VStack spacing={6} align="stretch">
-                    {hotel.reviews && hotel.reviews.length > 0 ? (
-                      hotel.reviews.map((review) => (
-                        <Box key={review.id} borderBottomWidth="1px" pb={6} _last={{ borderBottom: 'none' }}>
-                          <Flex justify="space-between" mb={2}>
-                            <HStack>
-                              <Avatar name={review.userName} size="sm" />
-                              <Box>
-                                <Text fontWeight="medium">{review.userName}</Text>
-                                <Text fontSize="sm" color="gray.500">
-                                  {new Date(review.date).toLocaleDateString()}
-                                </Text>
-                              </Box>
                             </HStack>
-                            <Rating value={review.rating} size="sm" />
-                          </Flex>
-                          <Text color="gray.700">{review.comment}</Text>
+                          </Box>
                         </Box>
-                      ))
-                    ) : (
-                      <Text color="gray.500" textAlign="center" py={10}>
-                        No reviews yet. Be the first to review!
-                      </Text>
-                    )}
-                  </VStack>
+                      ))}
+                    </SimpleGrid>
+                  ) : (
+                    <Box textAlign="center" py={10}>
+                      <Text color="gray.500">Свободных номеров нет.</Text>
+                    </Box>
+                  )}
+                </TabPanel>
+
+                <TabPanel px={0}>
+                  {reviews.length > 0 ? (
+                    <VStack spacing={6} align="stretch">
+                      {reviews.map((review: ReviewUI) => (
+                        <Box key={review.id} borderWidth="1px" borderRadius="lg" p={4}>
+                          <HStack justify="space-between" mb={2}>
+                            <Text fontWeight="bold">{review.userName}</Text>
+                            <Rating value={review.rating} size="sm" />
+                          </HStack>
+                          <Text fontSize="sm" color="gray.500" mb={2}>
+                            {new Date(review.date).toLocaleDateString('en-US')}
+                          </Text>
+                          <Text>{review.comment}</Text>
+                        </Box>
+                      ))}
+                    </VStack>
+                  ) : (
+                    <Text color="gray.500" textAlign="center" py={10}>
+                      Отзывов пока нет. Будьте первым, кто оставит отзыв!
+                    </Text>
+                  )}
                 </TabPanel>
               </TabPanels>
             </Tabs>
           </Box>
           
-          {/* Sidebar */}
+          {/* Боковая панель */}
           <Box>
             <Box 
               borderWidth="1px" 
@@ -373,36 +322,36 @@ export const HotelDetailPage = () => {
               boxShadow="sm"
             >
               <Heading size="md" mb={4}>
-                Book Your Stay
+                Забронируйте ваш номер
               </Heading>
               
               <VStack spacing={4}>
                 <Box w="100%">
-                  <Text fontSize="sm" color="gray.600" mb={1}>Check-in</Text>
+                  <Text fontSize="sm" color="gray.600" mb={1}>Дата заезда</Text>
                   <Input type="date" size="md" />
                 </Box>
                 
                 <Box w="100%">
-                  <Text fontSize="sm" color="gray.600" mb={1}>Check-out</Text>
+                  <Text fontSize="sm" color="gray.600" mb={1}>Дата выезда</Text>
                   <Input type="date" size="md" />
                 </Box>
                 
                 <Box w="100%">
-                  <Text fontSize="sm" color="gray.600" mb={1}>Guests</Text>
+                  <Text fontSize="sm" color="gray.600" mb={1}>Количество гостей</Text>
                   <Input type="number" defaultValue={2} min={1} size="md" />
                 </Box>
                 
                 <Box w="100%">
-                  <Text fontSize="sm" color="gray.600" mb={1}>Rooms</Text>
+                  <Text fontSize="sm" color="gray.600" mb={1}>Количество номеров</Text>
                   <Input type="number" defaultValue={1} min={1} size="md" />
                 </Box>
                 
                 <Button colorScheme="brand" size="lg" w="100%" mt={4}>
-                  Check Availability
+                  Проверить доступность
                 </Button>
                 
                 <Text fontSize="sm" color="green.500" textAlign="center" mt={2}>
-                  Free cancellation available
+                  Отмена бронирования бесплатна
                 </Text>
               </VStack>
             </Box>
@@ -410,7 +359,7 @@ export const HotelDetailPage = () => {
             {similarHotels && similarHotels.length > 0 && (
               <Box mt={8}>
                 <Heading size="md" mb={4}>
-                  Similar Hotels
+                  Похожие отели
                 </Heading>
                 <VStack spacing={4} align="stretch">
                   {similarHotels.map((hotel) => (

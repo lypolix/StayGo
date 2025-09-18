@@ -50,9 +50,9 @@ export interface Hotel {
   city: string;
   description: string;
   stars: number;
-  roomId: string;  // Single room ID reference
-  address: string;  // Simple string address
-  rooms: string[];  // Array of room IDs
+  roomId: string;
+  address: string;
+  rooms: string[];
   rating?: number;
   images?: HotelImage[];
   amenities?: Amenity[];
@@ -66,7 +66,7 @@ export interface HotelSearchParams {
   maxPrice?: number;
   minRating?: number;
   minStars?: number;
-  amenities?: string[];
+  amenities?: string;
   page?: number;
   limit?: number;
   sortBy?: 'price' | 'rating' | 'stars';
@@ -92,8 +92,8 @@ export interface HotelSearchResponse {
 export interface BookingRequest {
   roomId: string;
   userId: string;
-  checkIn: string; // ISO date string
-  checkOut: string; // ISO date string
+  checkIn: string; // ISO
+  checkOut: string; // ISO
   guests: number;
   totalPrice: number;
   guestInfo: {
@@ -106,7 +106,7 @@ export interface BookingRequest {
   paymentInfo: {
     cardNumber: string;
     cardHolder: string;
-    expiryDate: string; // MM/YY format
+    expiryDate: string; // мм/гг
     cvv: string;
   };
 }
@@ -134,4 +134,28 @@ export interface BookingResponse {
   };
   createdAt: string;
   updatedAt: string;
+}
+
+export interface RoomTypeUI {
+  id: string;
+  name: string;
+  description: string;
+  images?: { url: string }[];
+  pricePerNight: number;
+  maxOccupancy: number;
+  availableRooms: number;
+}
+
+export interface ReviewUI {
+  id: string;
+  userName: string;
+  rating: number;
+  date: string;
+  comment: string;
+}
+
+export interface HotelDetails extends Hotel {
+  price?: number;
+  roomTypes?: RoomTypeUI[];
+  reviews?: ReviewUI[];
 }

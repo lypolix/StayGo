@@ -29,9 +29,9 @@ export const useApiError = () => {
       position: 'top-right',
     });
 
-    // You can add more specific error handling here based on status code
+    // Можно добавить более специфическую обработку ошибок на основе состояния
     if (apiError.status === 401) {
-      // Handle unauthorized error (e.g., redirect to login)
+      // Обработка ошибки неавторизованного доступа (например, перенаправление на страницу входа)
     }
   }, [toast]);
 

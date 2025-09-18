@@ -19,7 +19,7 @@ import {
   FormHelperText,
 } from '@chakra-ui/react';
 import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
-import { useRegisterMutation } from '../api';
+import { useRegisterMutation } from '../../../app/api/api';
 import { setCredentials } from '../authSlice';
 import { useAppDispatch } from '@/app/hooks';
 
@@ -74,12 +74,12 @@ export const RegisterPage = () => {
         city: data.city,
       }).unwrap();
 
-      // Create a user object with the minimum required fields
+      // Создаем объект пользователя с минимальными обязательными полями
       const user = {
-        id: '', // The server should return the user ID
+        id: '', // Сервер должен вернуть ID пользователя
         name: data.name,
         email: data.email,
-        role: 'user', // Default role, adjust as needed
+        role: 'user', // Дефолтная роль
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -91,20 +91,20 @@ export const RegisterPage = () => {
         }),
       );
 
-      // Redirect to home after successful registration
+      // Перенаправляем на главную страницу после успешной регистрации
       navigate('/', { replace: true });
 
       toast({
-        title: 'Registration successful',
-        description: 'Your account has been created',
+        title: 'Регистрация успешна',
+        description: 'Ваш аккаунт был создан',
         status: 'success',
         duration: 5000,
         isClosable: true,
       });
     } catch (err) {
       toast({
-        title: 'Registration failed',
-        description: 'An error occurred during registration',
+        title: 'Регистрация не удалась',
+        description: 'Произошла ошибка при регистрации',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -116,12 +116,12 @@ export const RegisterPage = () => {
     <Stack spacing={8} maxW="md" mx="auto" py={12} px={6}>
       <Stack align="center">
         <Text fontSize="2xl" fontWeight="bold">
-          Create your account
+          Создайте аккаунт
         </Text>
         <Text color="gray.600">
-          Already have an account?{' '}
+          Уже есть аккаунт?{' '}
           <Link as={RouterLink} to="/login" color="brand.500">
-            Sign in
+            Войти
           </Link>
         </Text>
       </Stack>
@@ -129,7 +129,7 @@ export const RegisterPage = () => {
         <form onSubmit={handleSubmit(onSubmit)}>
           <Stack spacing={6}>
             <FormControl id="name" isInvalid={!!errors.name}>
-              <FormLabel>Full Name</FormLabel>
+              <FormLabel>Имя</FormLabel>
               <Input type="text" {...register('name')} placeholder="John Doe" />
               <FormErrorMessage>
                 {errors.name && errors.name.message}
@@ -137,7 +137,7 @@ export const RegisterPage = () => {
             </FormControl>
 
             <FormControl id="email" isInvalid={!!errors.email}>
-              <FormLabel>Email address</FormLabel>
+              <FormLabel>Электронная почта</FormLabel>
               <Input
                 type="email"
                 {...register('email')}
@@ -149,12 +149,12 @@ export const RegisterPage = () => {
             </FormControl>
 
             <FormControl id="password" isInvalid={!!errors.password}>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>Пароль</FormLabel>
               <InputGroup>
                 <Input
                   type={showPassword ? 'text' : 'password'}
                   {...register('password')}
-                  placeholder="Create a password"
+                  placeholder="Создайте пароль"
                 />
                 <InputRightElement h="full">
                   <Button
@@ -166,8 +166,7 @@ export const RegisterPage = () => {
                 </InputRightElement>
               </InputGroup>
               <FormHelperText>
-                Must be at least 8 characters with uppercase, lowercase, number,
-                and special character
+                Не менее 8 символов, включая заглавные и строчные буквы, цифры и специальные символы
               </FormHelperText>
               <FormErrorMessage>
                 {errors.password && errors.password.message}
@@ -175,12 +174,12 @@ export const RegisterPage = () => {
             </FormControl>
 
             <FormControl id="confirmPassword" isInvalid={!!errors.confirmPassword}>
-              <FormLabel>Confirm Password</FormLabel>
+              <FormLabel>Подтвердите пароль</FormLabel>
               <InputGroup>
                 <Input
                   type={showConfirmPassword ? 'text' : 'password'}
                   {...register('confirmPassword')}
-                  placeholder="Confirm your password"
+                  placeholder="Подтвердите пароль"
                 />
                 <InputRightElement h="full">
                   <Button
@@ -197,7 +196,7 @@ export const RegisterPage = () => {
             </FormControl>
 
             <FormControl id="date_of_birth" isInvalid={!!errors.date_of_birth}>
-              <FormLabel>Date of Birth</FormLabel>
+              <FormLabel>Дата рождения</FormLabel>
               <Input type="date" {...register('date_of_birth')} />
               <FormErrorMessage>
                 {errors.date_of_birth && errors.date_of_birth.message}
@@ -205,7 +204,7 @@ export const RegisterPage = () => {
             </FormControl>
 
             <FormControl id="city" isInvalid={!!errors.city}>
-              <FormLabel>City</FormLabel>
+              <FormLabel>Город</FormLabel>
               <Input type="text" {...register('city')} />
               <FormErrorMessage>
                 {errors.city && errors.city.message}
@@ -224,13 +223,13 @@ export const RegisterPage = () => {
                 </Box>
                 <Box ml={2}>
                   <label htmlFor="acceptTerms" className="text-sm">
-                    I agree to the{' '}
+                    Я принимаю{' '}
                     <Link color="brand.500" href="#">
-                      Terms of Service
+                      Условия использования
                     </Link>{' '}
-                    and{' '}
+                    и{' '}
                     <Link color="brand.500" href="#">
-                      Privacy Policy
+                      Политику конфиденциальности
                     </Link>
                   </label>
                 </Box>
@@ -244,9 +243,9 @@ export const RegisterPage = () => {
               type="submit"
               colorScheme="brand"
               isLoading={isLoading}
-              loadingText="Creating account..."
+              loadingText="Создание аккаунта..."
             >
-              Create account
+              Создать аккаунт
             </Button>
           </Stack>
         </form>

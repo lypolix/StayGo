@@ -33,16 +33,16 @@ import {
 import { EditIcon, StarIcon } from '@chakra-ui/icons';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../app/store';
-import { selectCurrentUser } from '@/features/auth/authSlice';
+//import { selectCurrentUser } from '@/features/auth/authSlice';
 import { HotelCard } from '@/features/hotels/components/HotelCard';
 import { useGetFavoriteHotelsQuery, useUpdateProfileMutation } from '@/app/api/userApi';
 import { useRemoveFromFavoritesMutation } from '@/app/api/favoriteApi';
-import type { UserProfile, UpdateProfileData, FavoriteHotel } from '@/features/user/types';
+import type { UpdateProfileData, FavoriteHotel } from '@/features/user/types';
 
 export const ProfilePage = () => {
   const user = useSelector((state: RootState) => state.auth.user);
   const [activeTab, setActiveTab] = useState(0);
-  const [isEditing, setIsEditing] = useState(false);
+  //const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<UpdateProfileData>({});
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { data: favorites = [], refetch } = useGetFavoriteHotelsQuery();
@@ -51,7 +51,7 @@ export const ProfilePage = () => {
   const toast = useToast();
   const navigate = useNavigate();
 
-  // Initialize form data when user data is available
+  // Инициализация данных формы при наличии данных пользователя
   useEffect(() => {
     if (user) {
       setFormData({
@@ -88,7 +88,7 @@ export const ProfilePage = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     
-    // Handle nested address fields
+    // Обработка вложенных полей адреса
     if (name.startsWith('address.')) {
       const addressField = name.split('.')[1];
       setFormData(prev => ({
@@ -110,7 +110,7 @@ export const ProfilePage = () => {
     try {
       await updateProfile(formData).unwrap();
       toast({
-        title: 'Profile updated successfully',
+        title: 'Профиль успешно обновлен',
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -118,8 +118,8 @@ export const ProfilePage = () => {
       onClose();
     } catch (error) {
       toast({
-        title: 'Failed to update profile',
-        description: 'Please try again later',
+        title: 'Не удалось обновить профиль',
+        description: 'Пожалуйста, попробуйте позже',
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -145,27 +145,27 @@ export const ProfilePage = () => {
           <Heading size="lg">{user.name}</Heading>
           <Text color="gray.500">{user.email}</Text>
           <Badge colorScheme="blue" px={2} py={1} borderRadius="md">
-            Member since {memberSince}
+            Зарегистрирован {memberSince}
           </Badge>
         </VStack>
       </VStack>
 
       <Tabs index={activeTab} onChange={(index) => setActiveTab(index)} variant="enclosed">
         <TabList mb={6} overflowX="auto" overflowY="hidden">
-          <Tab>Personal Info</Tab>
-          <Tab>My Favorites ({favorites.length})</Tab>
-          <Tab>Bookings</Tab>
-          <Tab>Settings</Tab>
+          <Tab>Личная информация</Tab>
+          <Tab>Мои избранные отели ({favorites.length})</Tab>
+          <Tab>Бронирования</Tab>
+          <Tab>Настройки</Tab>
         </TabList>
 
         <TabPanels>
           <TabPanel px={0}>
             <VStack align="start" spacing={6} maxW="2xl">
               <Box w="100%" p={6} borderWidth="1px" borderRadius="lg">
-                <Heading size="md" mb={6}>Personal Information</Heading>
+                <Heading size="md" mb={6}>Личная информация</Heading>
                 <VStack spacing={4} align="start">
                   <Box w="100%">
-                    <Text fontWeight="bold" mb={1} color="gray.600">Full Name</Text>
+                    <Text fontWeight="bold" mb={1} color="gray.600">Полное имя</Text>
                     <Text fontSize="lg">{user.name}</Text>
                   </Box>
                   <Box w="100%">
@@ -174,13 +174,13 @@ export const ProfilePage = () => {
                   </Box>
                   {user.phone && (
                     <Box w="100%">
-                      <Text fontWeight="bold" mb={1} color="gray.600">Phone</Text>
+                      <Text fontWeight="bold" mb={1} color="gray.600">Телефон</Text>
                       <Text fontSize="lg">{user.phone}</Text>
                     </Box>
                   )}
                   {user.address && (
                     <Box w="100%">
-                      <Text fontWeight="bold" mb={2} color="gray.600">Address</Text>
+                      <Text fontWeight="bold" mb={2} color="gray.600">Адрес</Text>
                       <Box pl={4}>
                         <Text>{user.address.street}</Text>
                         <Text>
@@ -199,7 +199,7 @@ export const ProfilePage = () => {
                     onClick={onOpen}
                     mt={4}
                   >
-                    Edit Profile
+                    Редактировать профиль
                   </Button>
                 </VStack>
               </Box>
@@ -208,18 +208,15 @@ export const ProfilePage = () => {
 
           <TabPanel px={0}>
             <Box>
-              <Heading size="md" mb={6}>My Favorite Hotels</Heading>
+              <Heading size="md" mb={6}>Мои избранные отели</Heading>
               <Divider mb={6} />
               
               {favorites.length > 0 ? (
                 <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
                   {favorites.map((hotel) => {
-                    // Format location string from address
                     const location = hotel.address 
                       ? `${hotel.address.city || ''}${hotel.address.city && hotel.address.country ? ', ' : ''}${hotel.address.country || ''}`
                       : '';
-
-                    // Map the API response to the FavoriteHotel type
                     const favoriteHotel: FavoriteHotel = {
                       id: hotel.id,
                       name: hotel.name,
@@ -227,16 +224,16 @@ export const ProfilePage = () => {
                       image: hotel.image || '',
                       isFavorite: true,
                       location,
-                      rating: Math.min(5, Math.max(1, Math.round(hotel.starRating))), // Ensure rating is between 1-5
-                      starRating: Math.min(5, Math.max(1, Math.round(hotel.starRating))) as 1 | 2 | 3 | 4 | 5, // Ensure valid star rating
+                      rating: Math.min(5, Math.max(1, Math.round(hotel.starRating))),
+                      starRating: Math.min(5, Math.max(1, Math.round(hotel.starRating))) as 1 | 2 | 3 | 4 | 5,
                       price: hotel.price,
                       amenities: hotel.amenities,
                       address: {
-                        street: '', // Not provided by API
+                        street: '',
                         city: hotel.address?.city || '',
-                        state: '', // Not provided by API
+                        state: '',
                         country: hotel.address?.country || '',
-                        zipCode: '', // Not provided by API
+                        zipCode: '',
                       }
                     };
 
@@ -261,14 +258,14 @@ export const ProfilePage = () => {
                   borderColor="gray.200"
                 >
                   <Text color="gray.500" fontSize="lg" mb={4}>
-                    You haven't added any hotels to your favorites yet.
+                    Вы пока не добавили отели в избранное.
                   </Text>
                   <Button 
                     colorScheme="blue" 
                     onClick={() => navigate('/hotels')}
                     leftIcon={<StarIcon />}
                   >
-                    Explore Hotels
+                    Перейти к отелям
                   </Button>
                 </Box>
               )}
@@ -277,15 +274,15 @@ export const ProfilePage = () => {
 
           <TabPanel>
             <Box p={6} borderWidth="1px" borderRadius="lg">
-              <Heading size="md" mb={4}>Your Bookings</Heading>
-              <Text color="gray.500">Your upcoming and past bookings will appear here.</Text>
+              <Heading size="md" mb={4}>Бронирования</Heading>
+              <Text color="gray.500">Ваши будущие и прошлые бронирования будут отображаться здесь.</Text>
             </Box>
           </TabPanel>
 
           <TabPanel>
             <Box p={6} borderWidth="1px" borderRadius="lg">
-              <Heading size="md" mb={4}>Account Settings</Heading>
-              <Text color="gray.500">Manage your account preferences and security settings.</Text>
+              <Heading size="md" mb={4}>Настройки аккаунта</Heading>
+              <Text color="gray.500">Управление настройками аккаунта и безопасностью.</Text>
             </Box>
           </TabPanel>
         </TabPanels>
@@ -295,17 +292,17 @@ export const ProfilePage = () => {
       <Modal isOpen={isOpen} onClose={onClose} size="xl">
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Edit Profile</ModalHeader>
+          <ModalHeader>Редактировать профиль</ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
             <VStack spacing={4}>
               <FormControl>
-                <FormLabel>Full Name</FormLabel>
+                <FormLabel>Полное имя</FormLabel>
                 <Input 
                   name="name"
                   value={formData.name || ''}
                   onChange={handleInputChange}
-                  placeholder="Full Name"
+                  placeholder="Полное имя"
                 />
               </FormControl>
 
@@ -321,17 +318,17 @@ export const ProfilePage = () => {
               </FormControl>
 
               <FormControl>
-                <FormLabel>Phone Number</FormLabel>
+                <FormLabel>Телефон</FormLabel>
                 <Input 
                   name="phone"
                   value={formData.phone || ''}
                   onChange={handleInputChange}
-                  placeholder="Phone Number"
+                  placeholder="Телефон"
                 />
               </FormControl>
 
               <FormControl>
-                <FormLabel>Date of Birth</FormLabel>
+                <FormLabel>Дата рождения</FormLabel>
                 <Input 
                   name="dateOfBirth"
                   type="date"
@@ -341,55 +338,55 @@ export const ProfilePage = () => {
               </FormControl>
 
               <FormControl>
-                <FormLabel>Street Address</FormLabel>
+                <FormLabel>Улица</FormLabel>
                 <Input 
                   name="address.street"
                   value={formData.address?.street || ''}
                   onChange={handleInputChange}
-                  placeholder="Street Address"
+                  placeholder="Улица"
                 />
               </FormControl>
 
               <HStack w="100%" spacing={4}>
                 <FormControl>
-                  <FormLabel>City</FormLabel>
+                  <FormLabel>Город</FormLabel>
                   <Input 
                     name="address.city"
                     value={formData.address?.city || ''}
                     onChange={handleInputChange}
-                    placeholder="City"
+                    placeholder="Город"
                   />
                 </FormControl>
 
                 <FormControl>
-                  <FormLabel>State/Province</FormLabel>
+                  <FormLabel>Область</FormLabel>
                   <Input 
                     name="address.state"
                     value={formData.address?.state || ''}
                     onChange={handleInputChange}
-                    placeholder="State/Province"
+                    placeholder="Область"
                   />
                 </FormControl>
               </HStack>
 
               <HStack w="100%" spacing={4}>
                 <FormControl>
-                  <FormLabel>Postal Code</FormLabel>
+                  <FormLabel>Почтовый индекс</FormLabel>
                   <Input 
                     name="address.zipCode"
                     value={formData.address?.zipCode || ''}
                     onChange={handleInputChange}
-                    placeholder="Postal Code"
+                    placeholder="Почтовый индекс"
                   />
                 </FormControl>
 
                 <FormControl>
-                  <FormLabel>Country</FormLabel>
+                  <FormLabel>Страна</FormLabel>
                   <Input 
                     name="address.country"
                     value={formData.address?.country || ''}
                     onChange={handleInputChange}
-                    placeholder="Country"
+                    placeholder="Страна"
                   />
                 </FormControl>
               </HStack>
@@ -403,10 +400,10 @@ export const ProfilePage = () => {
               isLoading={isUpdating}
               loadingText="Saving..."
             >
-              Save Changes
+              Сохранить изменения
             </Button>
             <Button onClick={onClose} isDisabled={isUpdating}>
-              Cancel
+              Отмена
             </Button>
           </ModalFooter>
         </ModalContent>

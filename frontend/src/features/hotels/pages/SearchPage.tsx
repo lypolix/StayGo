@@ -1,3 +1,5 @@
+// Будет дорабатываться
+
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
@@ -32,25 +34,23 @@ import { FaFilter, FaWifi, FaSwimmingPool, FaParking, FaUtensils } from 'react-i
 import { useSearchHotelsQuery } from '../api';
 import { HotelCard } from '../components/HotelCard';
 
-// Mock amenities for filters
+// Моки удобств для фильтрации
 const amenities = [
-  { id: 'wifi', label: 'Free WiFi', icon: FaWifi },
-  { id: 'pool', label: 'Swimming Pool', icon: FaSwimmingPool },
-  { id: 'parking', label: 'Free Parking', icon: FaParking },
-  { id: 'restaurant', label: 'Restaurant', icon: FaUtensils },
-  { id: 'breakfast', label: 'Breakfast Included', icon: FaUtensils },
+  { id: 'wifi', label: 'Бесплатный WiFi', icon: FaWifi },
+  { id: 'pool', label: 'Бассейн', icon: FaSwimmingPool },
+  { id: 'parking', label: 'Бесплатная парковка', icon: FaParking },
+  { id: 'restaurant', label: 'Ресторан', icon: FaUtensils },
+  { id: 'breakfast', label: 'Завтрак включен', icon: FaUtensils },
 ];
 
-// Mock cities for destination dropdown
+// Мок-города для фильтрации
 const cities = [
-  'New York',
-  'Los Angeles',
-  'Miami',
-  'Las Vegas',
-  'Chicago',
-  'San Francisco',
-  'Seattle',
-  'Boston',
+  'Москва',
+  'Сан-Петербург',
+  'Новосибирск',
+  'Екатеринбург',
+  'Казань',
+  'Нижний Новгород',
 ];
 
 export const SearchPage = () => {
@@ -60,17 +60,17 @@ export const SearchPage = () => {
   const { isOpen, onToggle } = useDisclosure();
   const isMobile = useBreakpointValue({ base: true, md: false });
   
-  // Get search query from URL
+  // Получить search query из URL
   const query = searchParams.get('q') || '';
   const [searchQuery, setSearchQuery] = useState(query);
   
-  // Filters state
+  // Фильтры
   const [selectedCity, setSelectedCity] = useState('');
   const [priceRange, setPriceRange] = useState([0, 1000]);
   const [rating, setRating] = useState(0);
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   
-  // Fetch hotels based on filters
+  // Получить отели по фильтрам
   const { data: hotels, isLoading, isError } = useSearchHotelsQuery({
     search: query,
     city: selectedCity,
@@ -80,12 +80,12 @@ export const SearchPage = () => {
     amenities: selectedAmenities.join(','),
   });
   
-  // Update search query when URL changes
+  // Обновить search query при изменении URL
   useEffect(() => {
     setSearchQuery(query);
   }, [query]);
   
-  // Handle search form submission
+  // Обработка отправки формы поиска
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -93,7 +93,7 @@ export const SearchPage = () => {
     }
   };
   
-  // Reset all filters
+  // Сбросить все фильтры
   const resetFilters = () => {
     setSelectedCity('');
     setPriceRange([0, 1000]);
@@ -101,7 +101,7 @@ export const SearchPage = () => {
     setSelectedAmenities([]);
   };
   
-  // Toggle amenity selection
+  // Переключение выбора удобства
   const toggleAmenity = (amenityId: string) => {
     setSelectedAmenities(prev =>
       prev.includes(amenityId)
@@ -110,12 +110,12 @@ export const SearchPage = () => {
     );
   };
   
-  // Show error toast if there's an error fetching hotels
+  // Показать сообщение об ошибке при загрузке отелей
   useEffect(() => {
     if (isError) {
       toast({
         title: 'Error',
-        description: 'Failed to load hotels. Please try again later.',
+        description: 'Не удалось загрузить отели. Попробуйте позже.',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -133,7 +133,7 @@ export const SearchPage = () => {
           </InputLeftElement>
           <Input
             type="text"
-            placeholder="Search for destinations, hotels, or places..."
+            placeholder="Поиск по направлениям, отелям или местам..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             border="none"
@@ -152,7 +152,7 @@ export const SearchPage = () => {
             h="full"
             _hover={{ bg: 'brand.600' }}
           >
-            Search
+            Поиск
           </Button>
         </InputGroup>
       </Box>
@@ -171,7 +171,7 @@ export const SearchPage = () => {
         >
           <Flex justify="space-between" align="center" mb={6}>
             <Heading as="h2" size="md">
-              Filters
+              Фильтры
             </Heading>
             <Button
               variant="link"
@@ -179,7 +179,7 @@ export const SearchPage = () => {
               onClick={resetFilters}
               size="sm"
             >
-              Reset All
+              Сбросить все
             </Button>
           </Flex>
           
@@ -187,10 +187,10 @@ export const SearchPage = () => {
             {/* Destination Filter */}
             <Box>
               <Text fontWeight="medium" mb={2}>
-                Destination
+                Город
               </Text>
               <Select
-                placeholder="Select city"
+                placeholder="Выберите город"
                 value={selectedCity}
                 onChange={(e) => setSelectedCity(e.target.value)}
               >
@@ -205,14 +205,14 @@ export const SearchPage = () => {
             {/* Price Range Filter */}
             <Box>
               <Text fontWeight="medium" mb={2}>
-                Price Range
+                Цена
               </Text>
               <VStack spacing={4}>
                 <RangeSlider
                   aria-label={['min price', 'max price']}
-                  defaultValue={[0, 1000]}
+                  defaultValue={[0, 999999]}
                   min={0}
-                  max={1000}
+                  max={999999}
                   step={10}
                   value={priceRange}
                   onChange={setPriceRange}
@@ -248,10 +248,10 @@ export const SearchPage = () => {
               </VStack>
             </Box>
             
-            {/* Rating Filter */}
+            {/* Фильтр рейтинга */}
             <Box>
               <Text fontWeight="medium" mb={2}>
-                Rating
+                Рейтинг
               </Text>
               <VStack align="start" spacing={2}>
                 {[5, 4, 3, 2, 1].map((stars) => (
@@ -273,10 +273,10 @@ export const SearchPage = () => {
               </VStack>
             </Box>
             
-            {/* Amenities Filter */}
+            {/* Фильтр удобств */}
             <Box>
               <Text fontWeight="medium" mb={2}>
-                Amenities
+                Удобства
               </Text>
               <VStack align="start" spacing={3}>
                 {amenities.map((amenity) => (
@@ -296,18 +296,18 @@ export const SearchPage = () => {
           </Stack>
         </Box>
         
-        {/* Search Results */}
+        {/* Результаты поиска */}
         <Box>
           <Flex justify="space-between" align="center" mb={6}>
             <Heading as="h1" size="lg">
-              {query ? `Results for "${query}"` : 'All Hotels'}
+              {query ? `Результаты поиска для "${query}"` : 'Все отели'}
             </Heading>
             <Text color="gray.600">
-              {isLoading ? 'Loading...' : `${hotels?.total || 0} properties found`}
+              {isLoading ? 'Загрузка...' : `${hotels?.total || 0} отелей найдено`}
             </Text>
           </Flex>
           
-          {/* Mobile Filters Button */}
+          {/* Кнопка фильтров для мобильных устройств */}
           {isMobile && (
             <Button
               leftIcon={<FaFilter />}
@@ -316,11 +316,11 @@ export const SearchPage = () => {
               width="full"
               variant="outline"
             >
-              {isOpen ? 'Hide Filters' : 'Show Filters'}
+              {isOpen ? 'Скрыть фильтры' : 'Показать фильтры'}
             </Button>
           )}
           
-          {/* Mobile Filters Panel */}
+          {/* Панель фильтров для мобильных устройств */}
           {isMobile && isOpen && (
             <Box
               bg="white"
@@ -330,13 +330,13 @@ export const SearchPage = () => {
               mb={6}
             >
               <Stack spacing={6}>
-                {/* Same filter components as the sidebar */}
+                {/* Те же компоненты фильтров, что и в боковой панели */}
                 {/* ... */}
               </Stack>
             </Box>
           )}
           
-          {/* Hotel Results */}
+          {/* Результаты поиска */}
           {isLoading ? (
             <Stack spacing={6}>
               {[...Array(4)].map((_, i) => (
@@ -362,10 +362,10 @@ export const SearchPage = () => {
               boxShadow="sm"
             >
               <Text fontSize="xl" fontWeight="medium" mb={4}>
-                No hotels found matching your criteria
+                Нет отелей, соответствующих вашим критериям
               </Text>
               <Text color="gray.600" mb={6}>
-                Try adjusting your search or filters to find what you're looking for.
+                Попробуйте изменить параметры поиска или фильтры, чтобы найти то, что вам нужно.
               </Text>
               <Button
                 colorScheme="brand"
@@ -375,7 +375,7 @@ export const SearchPage = () => {
                   setSearchParams({});
                 }}
               >
-                Clear all filters
+                Сбросить все фильтры
               </Button>
             </Box>
           )}

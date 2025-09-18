@@ -1,6 +1,6 @@
 import { baseApi } from '@/app/api/baseApi';
-import type { User } from './types';
-import { setCredentials, logout } from './authSlice';
+import type { User } from '../../features/auth/types';
+import { setCredentials, logout } from '../../features/auth/authSlice';
 
 export interface LoginRequest {
   email: string;
@@ -37,9 +37,7 @@ export const authApi = baseApi.injectEndpoints({
       onQueryStarted: async (_, { dispatch, queryFulfilled }) => {
         try {
           const { data } = await queryFulfilled;
-          // The backend only returns tokens, we'll fetch the user profile separately
           if (data.token) {
-            // Trigger a refetch of the user profile
             dispatch(authApi.endpoints.getMe.initiate(undefined, { forceRefetch: true }));
           }
         } catch (error) {
@@ -56,14 +54,13 @@ export const authApi = baseApi.injectEndpoints({
       }),
     }),
 
-    // Get current user's profile
+    // Получить текущего пользователя
     getMe: builder.query<User, void>({
       query: () => '/users/profile',
       providesTags: ['Me'],
       onQueryStarted: async (_, { dispatch, queryFulfilled }) => {
         try {
           const { data } = await queryFulfilled;
-          // Update the auth state with the user data
           dispatch(
             setCredentials({
               user: data,
@@ -72,7 +69,6 @@ export const authApi = baseApi.injectEndpoints({
           );
         } catch (error) {
           console.error('Failed to fetch user profile:', error);
-          // If the request fails, clear the auth state
           dispatch(logout());
         }
       },
@@ -84,5 +80,5 @@ export const {
   useLoginMutation,
   useRegisterMutation,
   useGetMeQuery,
-  useGetMeQuery: useGetUserProfileQuery, // Alias for backward compatibility
+  useGetMeQuery: useGetUserProfileQuery,
 } = authApi;

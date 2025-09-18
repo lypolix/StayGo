@@ -1,11 +1,10 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Box,
   Button,
   Container,
-  Flex,
   Heading,
   Input,
   InputGroup,
@@ -28,14 +27,16 @@ import {
   useToast,
   FormHelperText,
   Spinner,
-  Center,
   IconButton,
 } from '@chakra-ui/react';
 import { SearchIcon, CalendarIcon, ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import { FaRegUser, FaRegHeart, FaRegClock, FaMapMarkerAlt } from 'react-icons/fa';
-import { formatDateToDisplay, pluralGuests } from '@/utils/dateUtils';
+import { formatDateToDisplay } from '@/utils/dateUtils';
+import { guestsText } from '@/utils/plural';
 import { HotelCard } from '@/features/hotels/components/HotelCard';
 import { mockHotels } from '@/features/landing/mocks/hotels';
+
+//const SCROLL_STEP = 320;
 
 export const LandingPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -101,17 +102,17 @@ export const LandingPage = () => {
     {
       icon: <FaRegUser size={24} color={accentColor} />,
       title: 'Персональные рекомендации',
-      description: 'Подбор отелей под ваши предпочтения',
+      description: 'Найдется именно то, что тебе по душе',
     },
     {
       icon: <FaRegHeart size={24} color={accentColor} />,
       title: 'Проверенные отзывы',
-      description: 'Честные мнения реальных путешественников',
+      description: 'Вася и Аня уже проверили и даже отзыв написали',
     },
     {
       icon: <FaRegClock size={24} color={accentColor} />,
       title: 'Экономия времени',
-      description: 'Находите подходящий вариант за минуты',
+      description: 'Просматривай отели за минуту и выбирай то, что тебе нужно',
     },
   ] as const;
 
@@ -124,7 +125,7 @@ export const LandingPage = () => {
   const [laneItems, setLaneItems] = useState<CardHotel[]>(() =>
     Array.from({ length: PAGE_SIZE }, (_, i) => {
       const src = mockHotels[i % mockHotels.length];
-      return { ...src, id: `${src.id}-${i}` }; // уникальный id для key
+      return { ...src, id: `${src.id}-${i}` };
     })
   );
   const [lanePage, setLanePage] = useState(1);
@@ -132,6 +133,44 @@ export const LandingPage = () => {
 
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const SCROLL_STEP = useMemo(() => (isMobile ? 280 : 320), [isMobile]);
+
+  const updateScrollButtons = useCallback(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    setCanScrollLeft(scrollLeft > 1);
+    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 1);
+  }, []);
+
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const onScroll = () => updateScrollButtons();
+    el.addEventListener('scroll', onScroll, { passive: true });
+    requestAnimationFrame(updateScrollButtons);
+    return () => el.removeEventListener('scroll', onScroll);
+  }, [updateScrollButtons]);
+
+  useEffect(() => {
+    requestAnimationFrame(updateScrollButtons);
+  }, [laneItems.length, isMobile, updateScrollButtons]);
+
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el || !('ResizeObserver' in window)) return;
+    const ro = new ResizeObserver(() => updateScrollButtons());
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [updateScrollButtons]);
+
+  const scrollBy = (dx: number) => {
+    scrollerRef.current?.scrollBy({ left: dx, behavior: 'smooth' });
+  };
 
   const getNextLaneChunk = useCallback((): CardHotel[] => {
     const start = lanePage * PAGE_SIZE;
@@ -152,7 +191,6 @@ export const LandingPage = () => {
         if (entry.isIntersecting && !blocked) {
           blocked = true;
           setIsLaneLoading(true);
-          // имитация задержки; можно убрать
           setTimeout(() => {
             setLaneItems((prev) => [...prev, ...getNextLaneChunk()]);
             setLanePage((p) => p + 1);
@@ -161,16 +199,12 @@ export const LandingPage = () => {
           }, 200);
         }
       },
-      { root, rootMargin: '300px' } // грузим заранее
+      { root, rootMargin: '300px' }
     );
 
     observer.observe(sentinel);
     return () => observer.disconnect();
   }, [getNextLaneChunk]);
-
-  const scrollBy = (dx: number) => {
-    scrollerRef.current?.scrollBy({ left: dx, behavior: 'smooth' });
-  };
 
   const resetForm = () => {
     setSearchQuery('');
@@ -181,7 +215,7 @@ export const LandingPage = () => {
 
   return (
     <Box bg={bgColor} minH="100vh" color={textColor}>
-      {/* Хиро */}
+      {/* Главная */}
       <Box position="relative" overflow="hidden" py={20}>
         <Box
           position="absolute"
@@ -327,7 +361,7 @@ export const LandingPage = () => {
                       </FormLabel>
                       <NumberInput
                         min={1}
-                        max={10}
+                        max={100}
                         value={guests}
                         onChange={(value) => setGuests(parseInt(value || '1'))}
                         aria-label="Количество гостей"
@@ -339,7 +373,7 @@ export const LandingPage = () => {
                         </NumberInputStepper>
                       </NumberInput>
                       <FormHelperText color={mutedTextColor}>
-                        {guests} {pluralGuests(guests)}
+                        {guestsText(guests)}
                       </FormHelperText>
                     </FormControl>
                   </SimpleGrid>
@@ -368,17 +402,18 @@ export const LandingPage = () => {
                 </Box>
               </motion.div>
             </Box>
-            {/* Популярные отели (моки) - бесконечная галерея */}
+
+            {/* Популярные отели - галерея */}
             <Box w="full" mt={10} position="relative">
               <Heading size="lg" mb={4}>
                 Популярные отели
               </Heading>
 
-              {/* Кнопки-стрелки */}
               <IconButton
                 aria-label="Назад"
                 icon={<ChevronLeftIcon />}
-                onClick={() => scrollBy(-320)}
+                onClick={() => scrollBy(-SCROLL_STEP)}
+                isDisabled={!canScrollLeft}
                 position="absolute"
                 left={-12}
                 top="50%"
@@ -390,7 +425,8 @@ export const LandingPage = () => {
               <IconButton
                 aria-label="Вперёд"
                 icon={<ChevronRightIcon />}
-                onClick={() => scrollBy(320)}
+                onClick={() => scrollBy(SCROLL_STEP)}
+                isDisabled={!canScrollRight}
                 position="absolute"
                 right={-12}
                 top="50%"
@@ -400,18 +436,20 @@ export const LandingPage = () => {
                 display={{ base: 'none', md: 'inline-flex' }}
               />
 
-              {/* Скроллер */}
+              {/* Горизонтальный скроллер */}
               <HStack
                 ref={scrollerRef}
                 spacing={4}
                 overflowX="auto"
                 overflowY="hidden"
                 py={2}
-                px={{ base: 1, md: 10 }}  // запас под стрелки
+                px={{ base: 1, md: 10 }}
                 align="stretch"
                 css={{
                   scrollSnapType: 'x mandatory',
                   scrollbarWidth: 'thin',
+                  WebkitOverflowScrolling: 'touch',
+                  '&::-webkit-scrollbar': { display: 'none' },
                 }}
               >
                 {laneItems.map((hotel) => (
@@ -426,7 +464,6 @@ export const LandingPage = () => {
                   </Box>
                 ))}
 
-                {/* Сентинел для IntersectionObserver (должен быть в потоке справа) */}
                 <Box ref={sentinelRef} minW="1px" minH="1px" />
               </HStack>
 
@@ -435,6 +472,30 @@ export const LandingPage = () => {
                   <Spinner size="sm" />
                 </Box>
               )}
+
+              <HStack
+                mt={3}
+                justify="center"
+                spacing={3}
+                display={{ base: 'flex', md: 'none' }}
+              >
+                <IconButton
+                  aria-label="Назад"
+                  icon={<ChevronLeftIcon />}
+                  onClick={() => scrollBy(-SCROLL_STEP)}
+                  isDisabled={!canScrollLeft}
+                  variant="ghost"
+                  size="md"
+                />
+                <IconButton
+                  aria-label="Вперёд"
+                  icon={<ChevronRightIcon />}
+                  onClick={() => scrollBy(SCROLL_STEP)}
+                  isDisabled={!canScrollRight}
+                  variant="ghost"
+                  size="md"
+                />
+              </HStack>
             </Box>
 
 
@@ -453,6 +514,7 @@ export const LandingPage = () => {
               <Heading size="xl" fontWeight="extrabold">
                 Друзья плохого не посоветуют!
               </Heading>
+              {/*Если надо добавить еще какой-то текст, то можно раскомментировать эту строку */}
               {/*<Text color={mutedTextColor}>
                 А мы поможем вам провести отпуск там, где вы мечтали.
               </Text>*/}

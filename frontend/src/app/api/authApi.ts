@@ -1,5 +1,5 @@
-import { baseApi } from '../../app/api/baseApi';
-import { setCredentials } from './authSlice';
+import { baseApi } from './baseApi';
+import { setCredentials } from '../../features/auth/authSlice';
 
 type LoginRequest = {
   email: string;

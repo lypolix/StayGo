@@ -1,3 +1,5 @@
+// Будет дорабатываться
+
 import { VStack, HStack, Text, Box, Divider, Avatar, Badge, useBreakpointValue } from '@chakra-ui/react';
 import { StarIcon } from '@chakra-ui/icons';
 import type { Review } from '@/shared/types';
@@ -27,15 +29,15 @@ export const ReviewList = ({
     );
   }
 
-  // Calculate average rating
+  // Средний рейтинг
   const averageRating = reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
   
-  // Group reviews by rating
-  const ratingCounts = [5, 4, 3, 2, 1].map((rating) => ({
+  // Группировка отзывов по рейтингу
+  {/*const ratingCounts = [5, 4, 3, 2, 1].map((rating) => ({
     rating,
     count: reviews.filter((r) => Math.round(r.rating) === rating).length,
     percentage: (reviews.filter((r) => Math.round(r.rating) === rating).length / reviews.length) * 100,
-  }));
+  }));*/}
 
   return (
     <VStack align="stretch" spacing={6}>
@@ -51,7 +53,7 @@ export const ReviewList = ({
               </Text>
             </Box>
             <Box flex={1}>
-              {[5, 4, 3, 2, 1].map((rating) => {
+              {/*[5, 4, 3, 2, 1].map((rating) => {
                 const count = reviews.filter((r) => Math.round(r.rating) === rating).length;
                 const percentage = (count / reviews.length) * 100;
                 
@@ -74,7 +76,7 @@ export const ReviewList = ({
                     </Text>
                   </HStack>
                 );
-              })}
+              })*/}
             </Box>
           </HStack>
         </Box>

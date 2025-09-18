@@ -1,8 +1,10 @@
+/* Блок будет дорабатываться */
+
 import { baseApi } from './baseApi';
 
-type RoomIDDTO = {
+{/*type RoomIDDTO = {
   room_id: number;
-};
+};*/}
 
 export const favoriteApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({

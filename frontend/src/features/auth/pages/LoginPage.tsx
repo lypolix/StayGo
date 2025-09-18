@@ -20,7 +20,7 @@ import {
   Flex,
 } from '@chakra-ui/react';
 import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
-import { useLoginMutation, useGetMeQuery } from '../authApi';
+import { useLoginMutation } from '../../../app/api/authApi';
 import { setCredentials } from '../authSlice';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 
@@ -33,17 +33,17 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [login, { isLoading, isSuccess }] = useLoginMutation();
+  const [login, { isLoading }] = useLoginMutation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const toast = useToast();
   const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated);
   
-  // Get the redirect location or default to '/profile'
+  // Получаем редирект или по умолчанию '/profile'
   const from = location.state?.from?.pathname || '/profile';
 
-  // Redirect if already authenticated
+  // Перенаправляем, если уже авторизован
   useEffect(() => {
     if (isAuthenticated) {
       navigate(from, { replace: true });
@@ -69,7 +69,7 @@ export const LoginPage = () => {
         password: data.password,
       }).unwrap();
 
-      // Persist tokens defensively regardless of onQueryStarted
+      // Сохраняем токены
       const accessToken = (response as any).access_token || (response as any).token;
       const refreshToken = (response as any).refresh_token;
       if (accessToken) {
@@ -79,12 +79,12 @@ export const LoginPage = () => {
         localStorage.setItem('refresh_token', refreshToken);
       }
 
-      // Ensure auth state is set before navigating
+      // Устанавливаем состояние авторизации до переходов
       if (accessToken) {
         dispatch(setCredentials({ user: (response as any).user, token: accessToken }));
       }
 
-      // Show success message
+      // Показываем сообщение об успехе
       toast({
         title: 'Вход выполнен успешно',
         status: 'success',
@@ -92,8 +92,7 @@ export const LoginPage = () => {
         isClosable: true,
       });
 
-      // The onQueryStarted in authApi will handle setting credentials
-      // Now navigate to the intended page or profile
+      // Перенаправляем на нужную страницу
       const from = location.state?.from?.pathname || '/profile';
       navigate(from, { replace: true });
 

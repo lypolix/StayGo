@@ -1,9 +1,9 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { type RootState } from '@/app/store';
 import { type Hotel, type HotelSearchParams, type BookingRequest, type BookingResponse } from './types';
-import type { Room } from '@/shared/types';
+import type { Room, Review } from '@/shared/types';
 
-// Define a service using a base URL and expected endpoints
+// Определяем сервис с использованием базового URL и ожидаемых эндпоинтов
 export const hotelsApi = createApi({
   reducerPath: 'hotelsApi',
   baseQuery: fetchBaseQuery({
@@ -18,13 +18,12 @@ export const hotelsApi = createApi({
   }),
   tagTypes: ['Hotel', 'Booking', 'Favorite', 'Room'],
   endpoints: (builder) => ({
-    // Search hotels
+    // Поиск отелей
     searchHotels: builder.query<{ data: Hotel[]; total: number }, HotelSearchParams>({
       query: (params) => ({
         url: '/search',
         params: {
           ...params,
-          // Convert arrays to comma-separated strings if needed
           amenities: Array.isArray(params.amenities) 
             ? params.amenities.join(',') 
             : params.amenities,
@@ -39,19 +38,26 @@ export const hotelsApi = createApi({
           : [{ type: 'Hotel', id: 'LIST' }],
     }),
     
-    // Get room by ID
+    getReviewsByRoomId: builder.query<Review[], number>({
+      query: (roomId) => ({
+        url: '/reviews',
+        params: { room_id: roomId },
+      }),
+    }),
+
+    // Получение номера по ID
     getRoomById: builder.query<Room, string>({
       query: (id) => `/rooms/${id}`,
-      providesTags: (result, error, id) => [{ type: 'Room', id }],
+      providesTags: (_result, _error, id) => [{ type: 'Room', id }],
     }),
     
-    // Get hotel by ID
+    // Получение отеля по ID
     getHotelById: builder.query<Hotel, string>({
       query: (id) => `/${id}`,
-      providesTags: (result, error, id) => [{ type: 'Hotel', id }],
+      providesTags: (_result, _error, id) => [{ type: 'Hotel', id }],
     }),
     
-    // Get featured hotels
+    // Получение популярных отелей
     getFeaturedHotels: builder.query<Hotel[], void>({
       query: () => '/featured',
       providesTags: (result) =>
@@ -63,15 +69,15 @@ export const hotelsApi = createApi({
           : [{ type: 'Hotel', id: 'FEATURED' }],
     }),
     
-    // Get similar hotels
+    // Получение похожих отелей
     getSimilarHotels: builder.query<Hotel[], { hotelId: string; limit?: number }>({
       query: ({ hotelId, limit = 3 }) => `/${hotelId}/similar?limit=${limit}`,
-      providesTags: (result, error, { hotelId }) => [
+      providesTags: (_result, _error, { hotelId }) => [
         { type: 'Hotel', id: `SIMILAR-${hotelId}` },
       ],
     }),
     
-    // Create a booking
+    // Создание бронирования
     createBooking: builder.mutation<BookingResponse, BookingRequest>({
       query: (bookingData) => ({
         url: '/bookings',
@@ -81,7 +87,7 @@ export const hotelsApi = createApi({
       invalidatesTags: ['Booking'],
     }),
     
-    // Get user bookings
+    // Получение бронирований пользователя
     getUserBookings: builder.query<BookingResponse[], void>({
       query: () => '/bookings/me',
       providesTags: (result) =>
@@ -93,37 +99,37 @@ export const hotelsApi = createApi({
           : [{ type: 'Booking', id: 'USER' }],
     }),
     
-    // Get booking by ID
+    // Получение бронирования по ID
     getBookingById: builder.query<BookingResponse, string>({
       query: (id) => `/bookings/${id}`,
-      providesTags: (result, error, id) => [{ type: 'Booking', id }],
+      providesTags: (_result, _error, id) => [{ type: 'Booking', id }],
     }),
     
-    // Cancel booking
+    // Отмена бронирования
     cancelBooking: builder.mutation<BookingResponse, string>({
       query: (id) => ({
         url: `/bookings/${id}/cancel`,
         method: 'PATCH',
       }),
-      invalidatesTags: (result, error, id) => [
+      invalidatesTags: (_result, _error, id) => [
         { type: 'Booking', id },
         { type: 'Booking', id: 'USER' },
       ],
     }),
     
-    // Toggle favorite hotel
+    // Изменение избранного отеля
     toggleFavorite: builder.mutation<{ isFavorite: boolean }, string>({
       query: (hotelId) => ({
         url: `/${hotelId}/favorite`,
         method: 'POST',
       }),
-      invalidatesTags: (result, error, hotelId) => [
+      invalidatesTags: (_result, _error, hotelId) => [
         { type: 'Hotel', id: hotelId },
         { type: 'Favorite', id: 'LIST' },
       ],
     }),
     
-    // Get favorite hotels
+    // Получение избранных отелей
     getFavoriteHotels: builder.query<Hotel[], void>({
       query: () => '/favorites',
       providesTags: (result) =>
@@ -135,7 +141,7 @@ export const hotelsApi = createApi({
           : [{ type: 'Favorite', id: 'LIST' }],
     }),
     
-    // Get hotel reviews
+    // Получение отзывов на отель
     getHotelReviews: builder.query<{
       data: Array<{
         id: string;
@@ -155,12 +161,12 @@ export const hotelsApi = createApi({
         url: `/${hotelId}/reviews`,
         params: { page, limit },
       }),
-      providesTags: (result, error, { hotelId }) => [
+      providesTags: (_result, _error, { hotelId }) => [
         { type: 'Hotel', id: `${hotelId}-reviews` },
       ],
     }),
     
-    // Submit a review
+    // Отправка отзыва
     submitReview: builder.mutation<
       void,
       {
@@ -174,7 +180,7 @@ export const hotelsApi = createApi({
         method: 'POST',
         body: reviewData,
       }),
-      invalidatesTags: (result, error, { hotelId }) => [
+      invalidatesTags: (_result, _error, { hotelId }) => [
         { type: 'Hotel', id: hotelId },
         { type: 'Hotel', id: `${hotelId}-reviews` },
       ],
@@ -182,8 +188,8 @@ export const hotelsApi = createApi({
   }),
 });
 
-// Export hooks for usage in functional components, which are
-// auto-generated based on the defined endpoints
+// Экспортируем хуки для использования в функциональных компонентах,
+// которые автоматически генерируются на основе определенных эндпоинтов
 export const {
   useSearchHotelsQuery,
   useGetHotelByIdQuery,
@@ -198,4 +204,5 @@ export const {
   useGetFavoriteHotelsQuery,
   useGetHotelReviewsQuery,
   useSubmitReviewMutation,
+  useGetReviewsByRoomIdQuery,
 } = hotelsApi;

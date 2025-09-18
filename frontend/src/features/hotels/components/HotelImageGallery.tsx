@@ -1,3 +1,5 @@
+// Будет дорабатываться
+
 import { useState } from 'react';
 import { Box, Image, IconButton, HStack, useBreakpointValue } from '@chakra-ui/react';
 import { ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
@@ -51,7 +53,7 @@ export const HotelImageGallery = ({ images }: HotelImageGalleryProps) => {
 
   return (
     <Box position="relative" width="100%" borderRadius="lg" overflow="hidden">
-      {/* Main Image */}
+      {/* Основное изображение */}
       <Box 
         position="relative" 
         width="100%" 
@@ -68,7 +70,7 @@ export const HotelImageGallery = ({ images }: HotelImageGalleryProps) => {
           _hover={{ transform: 'scale(1.02)' }}
         />
 
-        {/* Navigation Arrows */}
+        {/* Стрелки навигации */}
         {showArrows && (
           <>
             <IconButton
@@ -108,7 +110,7 @@ export const HotelImageGallery = ({ images }: HotelImageGalleryProps) => {
           </>
         )}
 
-        {/* Image Counter */}
+        {/* Счетчик изображений */}
         <Box
           position="absolute"
           bottom={4}
@@ -125,7 +127,7 @@ export const HotelImageGallery = ({ images }: HotelImageGalleryProps) => {
         </Box>
       </Box>
 
-      {/* Thumbnails */}
+      {/* Миниатюры */}
       {showThumbnails && images.length > 1 && (
         <HStack 
           spacing={2} 

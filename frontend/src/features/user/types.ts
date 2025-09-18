@@ -1,6 +1,6 @@
 import type { BaseEntity } from '@/shared/types';
 import type { User } from '@/features/auth/types';
-import type { Hotel } from '@/features/hotels/types';
+//import type { Hotel } from '@/features/hotels/types';
 
 export interface UserProfile extends BaseEntity, User {
   phone?: string;

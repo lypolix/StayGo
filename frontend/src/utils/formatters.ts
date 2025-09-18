@@ -1,21 +1,21 @@
 /**
- * Formats a number as a currency string
- * @param amount - The amount to format
- * @param currency - The currency code (default: 'RUB')
- * @param locale - The locale to use for formatting (default: 'ru-RU')
- * @returns Formatted currency string
+ * Форматирует число как строку валюты
+ * @param amount - Сумма для форматирования
+ * @param currency - Код валюты (по умолчанию: 'RUB')
+ * @param locale - Локаль для форматирования (по умолчанию: 'ru-RU')
+ * @returns Отформатированная строка валюты
  */
 export const formatCurrency = (
   amount: number,
   currency: string = 'RUB',
   locale: string = 'ru-RU'
 ): string => {
-  // Handle invalid or missing amount
+  // Обработка недействительной или отсутствующей суммы
   if (typeof amount !== 'number' || isNaN(amount)) {
     return 'N/A';
   }
 
-  // Format the currency
+  // Форматирование валюты
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
@@ -25,10 +25,10 @@ export const formatCurrency = (
 };
 
 /**
- * Formats a number with a specific number of decimal places
- * @param value - The number to format
- * @param decimals - Number of decimal places (default: 2)
- * @returns Formatted number string
+ * Форматирует число с определенным количеством знаков после запятой
+ * @param value - Число для форматирования
+ * @param decimals - Количество знаков после запятой (по умолчанию: 2)
+ * @returns Отформатированная строка числа
  */
 export const formatNumber = (value: number, decimals: number = 2): string => {
   if (typeof value !== 'number' || isNaN(value)) {
@@ -41,10 +41,10 @@ export const formatNumber = (value: number, decimals: number = 2): string => {
 };
 
 /**
- * Formats a date string to a localized date format
- * @param date - Date string or Date object
- * @param options - Intl.DateTimeFormatOptions
- * @returns Formatted date string
+ * Форматирует строку даты в локальный формат даты
+ * @param date - Строка даты или объект Date
+ * @param options - Параметры форматирования даты
+ * @returns Отформатированная строка даты
  */
 export const formatDate = (
   date: string | Date,
@@ -57,7 +57,7 @@ export const formatDate = (
   try {
     const dateObj = typeof date === 'string' ? new Date(date) : date;
     
-    // Check if the date is valid
+    // Проверка валидности даты
     if (isNaN(dateObj.getTime())) {
       return 'Invalid date';
     }
@@ -70,10 +70,10 @@ export const formatDate = (
 };
 
 /**
- * Truncates text to a specified length and adds an ellipsis if needed
- * @param text - The text to truncate
- * @param maxLength - Maximum length before truncation
- * @returns Truncated text with ellipsis if needed
+ * Обрезает текст до указанной длины и добавляет многоточие, если необходимо
+ * @param text - Текст для обрезания
+ * @param maxLength - Максимальная длина перед обрезанием
+ * @returns Обрезанный текст с многоточием, если необходимо
  */
 export const truncateText = (text: string, maxLength: number = 100): string => {
   if (typeof text !== 'string') return '';
@@ -82,9 +82,9 @@ export const truncateText = (text: string, maxLength: number = 100): string => {
 };
 
 /**
- * Converts a string to title case
- * @param str - The string to convert
- * @returns String in title case
+ * Преобразует строку в формат заголовка
+ * @param str - Строка для преобразования
+ * @returns Строка в формате заголовка
  */
 export const toTitleCase = (str: string): string => {
   if (!str) return '';
@@ -95,9 +95,9 @@ export const toTitleCase = (str: string): string => {
 };
 
 /**
- * Formats a duration in minutes to a human-readable format (e.g., "2h 30m")
- * @param minutes - Duration in minutes
- * @returns Formatted duration string
+ * Форматирует продолжительность в минутах в человеко-читаемый формат (например, "2ч. 30мин.")
+ * @param minutes - Продолжительность в минутах
+ * @returns Отформатированная строка продолжительности
  */
 export const formatDuration = (minutes: number): string => {
   if (typeof minutes !== 'number' || isNaN(minutes) || minutes < 0) {
@@ -108,10 +108,10 @@ export const formatDuration = (minutes: number): string => {
   const mins = minutes % 60;
   
   if (hours > 0 && mins > 0) {
-    return `${hours}h ${mins}m`;
+    return `${hours}ч. ${mins}мин.`;
   } else if (hours > 0) {
-    return `${hours}h`;
+    return `${hours}ч.`;
   } else {
-    return `${mins}m`;
+    return `${mins}мин.`;
   }
 };

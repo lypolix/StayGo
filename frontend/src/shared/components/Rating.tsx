@@ -15,7 +15,7 @@ export const Rating = ({ value, count, size = 'md' }: RatingProps) => {
   };
 
   const starSize = sizeMap[size];
-  const filledStars = Math.round(value * 2) / 2; // Round to nearest 0.5
+  const filledStars = Math.round(value * 2) / 2; // Округление до ближайшего 0.5
 
   return (
     <HStack spacing={1} align="center">

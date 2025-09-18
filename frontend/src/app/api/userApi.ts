@@ -3,13 +3,13 @@ import type { UserProfile, UpdateProfileData } from '@/features/user/types';
 
 export const userApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    // Get current user profile
+    // Получить текущий профиль пользователя
     getProfile: builder.query<UserProfile, void>({
       query: () => '/users/me',
       providesTags: ['Me'],
     }),
 
-    // Update user profile
+    // Обновить профиль пользователя
     updateProfile: builder.mutation<UserProfile, UpdateProfileData>({
       query: (data) => ({
         url: '/users/me',
@@ -19,7 +19,7 @@ export const userApi = baseApi.injectEndpoints({
       invalidatesTags: ['Me'],
     }),
 
-    // Get user's favorite hotels
+    // Получить список избранных отелей
     getFavoriteHotels: builder.query<Array<{
       id: string;
       name: string;
@@ -43,7 +43,7 @@ export const userApi = baseApi.injectEndpoints({
           : [{ type: 'Favorites', id: 'LIST' }],
     }),
 
-    // Add hotel to favorites
+    // Добавить отель в избранное
     addToFavorites: builder.mutation<void, string>({
       query: (hotelId) => ({
         url: `/users/me/favorites/${hotelId}`,
@@ -52,7 +52,7 @@ export const userApi = baseApi.injectEndpoints({
       invalidatesTags: ['Favorites'],
     }),
 
-    // Remove hotel from favorites
+    // Удалить отель из избранного
     removeFromFavorites: builder.mutation<void, string>({
       query: (hotelId) => ({
         url: `/users/me/favorites/${hotelId}`,

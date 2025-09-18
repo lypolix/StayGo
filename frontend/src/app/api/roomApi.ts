@@ -1,3 +1,5 @@
+/* Блок будет дорабатываться */
+
 import { baseApi } from './baseApi';
 
 export const roomApi = baseApi.injectEndpoints({

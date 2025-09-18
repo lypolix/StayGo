@@ -14,7 +14,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 
 interface CustomInputProps extends ComponentPropsWithoutRef<'input'> {
   /**
-   * Кастомный инпут: вырезаем нативный `size` (число), чтобы не конфликтовало с Chakra `Input.size`
+   * Кастомный инпут, чтобы не конфликтовало с Chakra `Input.size`
    */
   label?: string;
   htmlSize?: number;
@@ -201,7 +201,7 @@ export const DatePickerRange = ({
   );
 };
 
-// For backward compatibility
+// Для обратной совместимости
 export const DatePicker = {
   Single: DatePickerSingle,
   Range: DatePickerRange,

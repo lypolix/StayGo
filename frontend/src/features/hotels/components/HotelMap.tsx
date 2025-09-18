@@ -1,9 +1,11 @@
+// Будет дорабатываться
+
 import { useEffect, useRef } from 'react';
 import { Box, Text } from '@chakra-ui/react';
 import * as L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Fix for default marker icons in Next.js/React
+// Исправление для иконок маркера по умолчанию в React
 const defaultIcon = L.icon({
   iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
@@ -42,7 +44,7 @@ export const HotelMap = ({
   useEffect(() => {
     if (!mapContainer.current || mapRef.current) return;
 
-    // Initialize the map
+    // Инициализация карты
     mapRef.current = L.map(mapContainer.current, {
       center: [latitude, longitude],
       zoom,
@@ -56,13 +58,13 @@ export const HotelMap = ({
       keyboard: interactive,
     });
 
-    // Add OpenStreetMap tiles
+    // Добавление OpenStreetMap
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors',
       maxZoom: 19,
     }).addTo(mapRef.current);
 
-    // Add marker
+    // Добавление маркера
     markerRef.current = L.marker([latitude, longitude], {
       icon: defaultIcon,
       title: name,
@@ -71,12 +73,12 @@ export const HotelMap = ({
       riseOnHover: true,
     }).addTo(mapRef.current);
 
-    // Add popup
+    // Добавление popup
     if (name) {
       markerRef.current.bindPopup(`<b>${name}</b><br>${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
     }
 
-    // Cleanup function
+    // Очистка
     return () => {
       if (mapRef.current) {
         mapRef.current.remove();
@@ -86,7 +88,7 @@ export const HotelMap = ({
     };
   }, [latitude, longitude, name, zoom, interactive]);
 
-  // Update map center if coordinates change
+  // Обновление центра карты при изменении координат
   useEffect(() => {
     if (mapRef.current && (mapRef.current.getCenter().lat !== latitude || 
         mapRef.current.getCenter().lng !== longitude)) {
@@ -98,7 +100,7 @@ export const HotelMap = ({
     }
   }, [latitude, longitude, zoom]);
 
-  // Update marker popup if name changes
+  // Обновление popup-маркера при изменении имени
   useEffect(() => {
     if (markerRef.current && name) {
       markerRef.current.setPopupContent(`<b>${name}</b><br>${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
@@ -131,7 +133,7 @@ export const HotelMap = ({
         },
       }}
     >
-      {/* Fallback content in case the map fails to load */}
+      {/* Fallback, если карта не загрузилась */}
       <noscript>
         <Box p={4} bg="gray.100" borderRadius="md">
           <Text>Interactive map requires JavaScript to be enabled.</Text>

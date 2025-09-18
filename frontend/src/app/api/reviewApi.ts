@@ -1,3 +1,5 @@
+/* Блок будет дорабатываться */
+
 import { baseApi } from './baseApi';
 
 type Review = {

@@ -1,6 +1,6 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import type { User } from './authApi';
-import { clearAuthTokens, setAuthTokens } from '@/utils/auth';
+import type { User } from '../../app/api/authApi';
+import { clearAuthTokens } from '@/utils/auth';
 import type { AuthState } from './types';
 
 const initialState: AuthState = {
@@ -26,7 +26,7 @@ const authSlice = createSlice({
         state.error = null;
         if (token) localStorage.setItem('access_token', token);
       } else {
-        // если кладём только user — не трогаем isAuthenticated/token
+        // если есть только user — не трогаем isAuthenticated/token
       }
     },
     logout: (state) => {
@@ -44,7 +44,6 @@ const authSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // Handle login success
     builder.addMatcher(
       (action) => action.type.endsWith('/fulfilled') && action.type.includes('getMe'),
       (state, action: any) => {
@@ -53,7 +52,6 @@ const authSlice = createSlice({
       }
     );
     
-    // Handle login error
     builder.addMatcher(
       (action) => action.type.endsWith('/rejected') && action.type.includes('login'),
       (state, action: any) => {
@@ -62,7 +60,6 @@ const authSlice = createSlice({
       }
     );
     
-    // Handle getMe success
     builder.addMatcher(
       (action) => action.type.endsWith('/fulfilled') && action.type.includes('getMe'),
       (state, action: any) => {
@@ -75,7 +72,7 @@ const authSlice = createSlice({
 
 export const { setCredentials, logout, setLoading, setError } = authSlice.actions;
 
-// Selectors
+// Селекторы
 export const selectCurrentUser = (state: { auth: AuthState }) => state.auth.user;
 export const selectIsAuthenticated = (state: { auth: AuthState }) => state.auth.isAuthenticated;
 export const selectIsLoading = (state: { auth: AuthState }) => state.auth.loading;

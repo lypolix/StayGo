@@ -1,6 +1,6 @@
-// Hotel card component used in search lists and sidebars. Supports horizontal and vertical variants.
+// Компонент карточки отеля, используемый в списках поиска и боковых панелях. Поддерживает горизонтальный и вертикальный вид.
 
-import { Box, Button, Flex, Heading, Image, Text, Badge, HStack, Icon, Tooltip, useColorModeValue } from '@chakra-ui/react';
+import { Box, Button, Flex, Heading, Image, Text, HStack, Icon, Tooltip, useColorModeValue } from '@chakra-ui/react';
 import { StarIcon } from '@chakra-ui/icons';
 import { FaMapMarkerAlt, FaWifi, FaSwimmingPool, FaParking, FaUtensils, FaSnowflake, FaTv, FaCoffee } from 'react-icons/fa';
 import type { Hotel } from '../types';
@@ -28,7 +28,7 @@ export const HotelCard = ({ hotel, onClick, variant = 'horizontal', onRemove }: 
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const hoverBg = useColorModeValue('gray.50', 'gray.700');
   
-  // Format price with currency and per night
+  // Форматирование цены с валютой и за ночь
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -38,7 +38,7 @@ export const HotelCard = ({ hotel, onClick, variant = 'horizontal', onRemove }: 
     }).format(price);
   };
 
-  // Type guard to check if hotel is of type FavoriteHotel
+  // Проверка типа отеля
   const isFavoriteHotel = (hotel: Hotel | FavoriteHotel): hotel is FavoriteHotel => {
     return 'location' in hotel && typeof hotel.location === 'string';
   };
@@ -46,22 +46,22 @@ export const HotelCard = ({ hotel, onClick, variant = 'horizontal', onRemove }: 
   const price: number | null =
     typeof (hotel as any).price === 'number' ? (hotel as any).price : null;
 
-  // Get the first image URL
+  // Получение URL первой изображения
   const imageUrl = isFavoriteHotel(hotel) ? hotel.image : hotel.images?.[0]?.url || '';
   
-  // Get amenities safely
+  // Получение удобств, если есть
   const amenities = hotel.amenities || [];
   const displayedAmenities = amenities.slice(0, 3);
   const hasMoreAmenities = amenities.length > 3;
   
-  // Get location from address or location field
+  // Получение локации
   const location = isFavoriteHotel(hotel) 
     ? hotel.location 
     : hotel.address 
       ? `${hotel.address}` 
       : 'Unknown location';
       
-  // Get star rating
+  // Получение рейтинга
   const starRating = isFavoriteHotel(hotel) ? hotel.starRating : (hotel.rating ?? 0);
 
   if (variant === 'vertical') {
@@ -159,7 +159,7 @@ export const HotelCard = ({ hotel, onClick, variant = 'horizontal', onRemove }: 
     );
   }
   
-  // Horizontal layout
+  // Горизонтальный layout
   return (
     <Flex
       direction={{ base: 'column', md: 'row' }}

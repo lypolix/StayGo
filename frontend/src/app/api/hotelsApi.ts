@@ -1,12 +1,12 @@
 /**
- * Hotels API (RTK Query)
- * Endpoints:
- * - getHotels: list with optional filters
- * - getHotelById: single hotel by id
- * - getHotelRooms: rooms for a specific hotel
- * - createHotel: create a new hotel (admin only)
- * Cache tags used: 'Hotels' (LIST), 'Hotel' (by id), 'Room' (LIST-<hotelId>)
+ * API отелей (RTK Query)
+ * - getHotels: список отелей с опциональными фильтрами
+ * - getHotelById: отель по id
+ * - getHotelRooms: номера для конкретного отеля
+ * - createHotel: создание нового отеля (только для администратора)
+ * Теги кеша: 'Hotels' (LIST), 'Hotel' (by id), 'Room' (LIST-<hotelId>)
  */
+/* Блок будет дорабатываться */
 
 import { baseApi } from '@/app/api/baseApi';
 import type { Hotel, Room } from '@/shared/types';

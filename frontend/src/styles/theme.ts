@@ -14,7 +14,7 @@ const theme = extendTheme({
       200: '#80caff',
       300: '#4db3ff',
       400: '#1a9cff',
-      500: '#0080ff', // Primary brand color
+      500: '#0080ff', // Основной цвет бренда
       600: '#0066cc',
       700: '#004d99',
       800: '#003366',
@@ -46,7 +46,7 @@ const theme = extendTheme({
         borderRadius: 'md',
       },
       variants: {
-        solid: (props: any) => ({
+        solid: (_props: any) => ({
           bg: 'brand.500',
           color: 'white',
           _hover: {
@@ -59,7 +59,7 @@ const theme = extendTheme({
             bg: 'brand.700',
           },
         }),
-        outline: (props: any) => ({
+        outline: (_props: any) => ({
           borderColor: 'brand.500',
           color: 'brand.500',
           _hover: {

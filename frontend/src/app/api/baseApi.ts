@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { RootState } from '@/app/store';
 
-const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+const baseUrl = import.meta.env.VITE_API_BASE_URL ?? '/api';
 
 export const baseApi = createApi({
   reducerPath: 'api',
@@ -15,6 +15,7 @@ export const baseApi = createApi({
       headers.set('Accept', 'application/json');
       return headers;
     },
+    //если надо будет добавить куки
     //credentials: 'include',
   }),
   tagTypes: ['Me', 'Hotels', 'Hotel', 'Room', 'Favorites', 'Review'],

@@ -6,10 +6,10 @@ import { useAppDispatch } from '@/app/hooks';
 import type { RootState } from '../store';
 import { Layout } from '../components/Layout';
 import { useState, useEffect } from 'react';
-import { authApi } from '../../features/auth/authApi';
+import { authApi } from '../api/authApi';
 import { setCredentials } from '../../features/auth/authSlice';
 
-// Lazy load route components for better performance
+// Ленивая загрузка
 const LandingPage = lazy(() => import('@/features/landing/pages/LandingPage').then(module => ({ default: module.default })));
 const LoginPage = lazy(() => import('@/features/auth/pages/LoginPage').then(module => ({ default: module.default })));
 const RegisterPage = lazy(() => import('@/features/auth/pages/RegisterPage').then(module => ({ default: module.default })));
@@ -18,14 +18,14 @@ const HotelPage = lazy(() => import('@/features/hotels/pages/HotelDetailPage').t
 const RoomPage = lazy(() => import('@/features/hotels/pages/RoomPage').then(module => ({ default: module.default })));
 const ProfilePage = lazy(() => import('@/features/user/pages/ProfilePage').then(module => ({ default: module.default })));
 
-// Loading component for Suspense fallback
+// Спиннер загрузки
 const LoadingSpinner = () => (
   <Box display="flex" justifyContent="center" alignItems="center" minH="60vh">
     <Spinner size="xl" />
   </Box>
 );
 
-// Protected route component
+// Защищенный роут
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
   const location = useLocation();
@@ -37,7 +37,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       const token = localStorage.getItem('access_token');
       if (token) {
         try {
-          // If we have a token but not authenticated, try to fetch the user
+          // Если у нас есть токен, но пользователь не аутентифицирован, пытаемся получить пользователя
           if (!isAuthenticated) {
             const user = await dispatch(
               authApi.endpoints.getMe.initiate(undefined, { forceRefetch: true })
@@ -69,7 +69,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (!isAuthenticated) {
-    // Redirect to login page with the current location to return to after login
+    // Перенаправление на страницу входа
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
@@ -82,7 +82,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   
   if (isAuthenticated) {
-    // Don't redirect if we're already on the login page
+    // Не перенаправляем, если мы уже на странице входа
     if (location.pathname === '/login' || location.pathname === '/register') {
       return <Navigate to="/profile" replace />;
     }
@@ -96,9 +96,9 @@ export const AppRoutes = () => {
   return (
     <Suspense fallback={<LoadingSpinner />}>
       <RouterRoutes>
-        {/* All routes with layout */}
+        {/* Все роуты лейаута */}
         <Route element={<Layout><Outlet /></Layout>}>
-          {/* Root route with layout */}
+          {/* Корневой путь */}
           <Route path="/" element={<LandingPage />} />
           
           <Route
@@ -119,7 +119,7 @@ export const AppRoutes = () => {
             }
           />
 
-          {/* Protected routes */}
+          {/* Защищенные роуты */}
           <Route
             path="/search"
             element={
