@@ -43,10 +43,8 @@ export const HotelCard = ({ hotel, onClick, variant = 'horizontal', onRemove }: 
     return 'location' in hotel && typeof hotel.location === 'string';
   };
 
-  const hasPrice = (h: Hotel | FavoriteHotel): h is { price: number } =>
-    typeof (h as any).price === 'number';
-
-  const price = hasPrice(hotel) ? hotel.price : null;
+  const price: number | null =
+    typeof (hotel as any).price === 'number' ? (hotel as any).price : null;
 
   // Get the first image URL
   const imageUrl = isFavoriteHotel(hotel) ? hotel.image : hotel.images?.[0]?.url || '';
@@ -141,20 +139,19 @@ export const HotelCard = ({ hotel, onClick, variant = 'horizontal', onRemove }: 
             })}
             {hasMoreAmenities && (
               <Text fontSize="xs" color="gray.500">
-                +{amenities.length - 3} more
+                и еще +{amenities.length - 3}
               </Text>
             )}
           </HStack>
           
           <Flex justify="space-between" align="center" mt={4}>
             <Box>
-              <Text fontSize="sm" color="gray.500">Starting from</Text>
               <Text fontWeight="bold" fontSize="lg">
-                {price != null ? formatPrice(price) : 'Price on request'}
+                {price != null ? formatPrice(price) : 'Цена по запросу'}
               </Text>
             </Box>
             <Button colorScheme="blue" size="sm" onClick={onClick}>
-              View Details
+              Подробнее
             </Button>
           </Flex>
         </Box>
@@ -251,13 +248,13 @@ export const HotelCard = ({ hotel, onClick, variant = 'horizontal', onRemove }: 
         
         <Flex mt="auto" justify="space-between" align="center">
           <Box>
-            <Text fontSize="sm" color="gray.500">Starting from</Text>
+            <Text fontSize="sm" color="gray.500">От</Text>
             <Text fontWeight="bold" fontSize="lg">
-              {price != null ? formatPrice(price) : 'Price on request'}
+              {price != null ? formatPrice(price) : 'Цена по запросу'}
             </Text>
           </Box>
           <Button colorScheme="blue" size="sm" onClick={onClick}>
-            View Details
+            Подробнее
           </Button>
         </Flex>
       </Flex>

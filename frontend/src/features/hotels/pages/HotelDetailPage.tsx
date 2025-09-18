@@ -198,7 +198,7 @@ export const HotelDetailPage = () => {
                   <Icon as={FaMapMarkerAlt} />
                   <Text>{hotel.city}</Text>
                 </HStack>
-                <Rating value={hotel.rating} size="md" />
+                <Rating value={hotel.rating || 0} size="md" />
               </Box>
               <Box textAlign="right">
                 <Text fontSize="2xl" fontWeight="bold" color="brand.500">

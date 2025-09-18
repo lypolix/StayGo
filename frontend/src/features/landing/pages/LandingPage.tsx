@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -27,8 +27,11 @@ import {
   TagLabel,
   useToast,
   FormHelperText,
+  Spinner,
+  Center,
+  IconButton,
 } from '@chakra-ui/react';
-import { SearchIcon, CalendarIcon } from '@chakra-ui/icons';
+import { SearchIcon, CalendarIcon, ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import { FaRegUser, FaRegHeart, FaRegClock, FaMapMarkerAlt } from 'react-icons/fa';
 import { formatDateToDisplay, pluralGuests } from '@/utils/dateUtils';
 import { HotelCard } from '@/features/hotels/components/HotelCard';
@@ -113,6 +116,61 @@ export const LandingPage = () => {
   ] as const;
 
   const popular = ['Санкт-Петербург', 'Москва', 'Сочи', 'Казань', 'Екатеринбург'];
+
+  const PAGE_SIZE = 12;
+
+  type CardHotel = typeof mockHotels[number];
+
+  const [laneItems, setLaneItems] = useState<CardHotel[]>(() =>
+    Array.from({ length: PAGE_SIZE }, (_, i) => {
+      const src = mockHotels[i % mockHotels.length];
+      return { ...src, id: `${src.id}-${i}` }; // уникальный id для key
+    })
+  );
+  const [lanePage, setLanePage] = useState(1);
+  const [isLaneLoading, setIsLaneLoading] = useState(false);
+
+  const scrollerRef = useRef<HTMLDivElement | null>(null);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  const getNextLaneChunk = useCallback((): CardHotel[] => {
+    const start = lanePage * PAGE_SIZE;
+    return Array.from({ length: PAGE_SIZE }, (_, idx) => {
+      const src = mockHotels[(start + idx) % mockHotels.length];
+      return { ...src, id: `${src.id}-${start + idx}` };
+    });
+  }, [lanePage]);
+
+  useEffect(() => {
+    const root = scrollerRef.current;
+    const sentinel = sentinelRef.current;
+    if (!root || !sentinel) return;
+
+    let blocked = false;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !blocked) {
+          blocked = true;
+          setIsLaneLoading(true);
+          // имитация задержки; можно убрать
+          setTimeout(() => {
+            setLaneItems((prev) => [...prev, ...getNextLaneChunk()]);
+            setLanePage((p) => p + 1);
+            setIsLaneLoading(false);
+            blocked = false;
+          }, 200);
+        }
+      },
+      { root, rootMargin: '300px' } // грузим заранее
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [getNextLaneChunk]);
+
+  const scrollBy = (dx: number) => {
+    scrollerRef.current?.scrollBy({ left: dx, behavior: 'smooth' });
+  };
 
   const resetForm = () => {
     setSearchQuery('');
@@ -310,27 +368,75 @@ export const LandingPage = () => {
                 </Box>
               </motion.div>
             </Box>
-            {/* Популярные отели (моки) */}
-            <Box w="full" mt={10}>
-              <VStack spacing={6} align="stretch">
-                <Heading size="lg" textAlign="left">
-                  Популярные отели
-                </Heading>
+            {/* Популярные отели (моки) - бесконечная галерея */}
+            <Box w="full" mt={10} position="relative">
+              <Heading size="lg" mb={4}>
+                Популярные отели
+              </Heading>
 
-                <SimpleGrid columns={{ base: 1, sm: 2, lg: 3 }} spacing={6}>
-                  {mockHotels.map((hotel) => (
-                    <motion.div
-                      key={hotel.id}
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.35 }}
-                    >
-                      <HotelCard hotel={hotel} />
-                    </motion.div>
-                  ))}
-                </SimpleGrid>
-              </VStack>
+              {/* Кнопки-стрелки */}
+              <IconButton
+                aria-label="Назад"
+                icon={<ChevronLeftIcon />}
+                onClick={() => scrollBy(-320)}
+                position="absolute"
+                left={-12}
+                top="50%"
+                transform="translateY(-50%)"
+                zIndex={2}
+                variant="ghost"
+                display={{ base: 'none', md: 'inline-flex' }}
+              />
+              <IconButton
+                aria-label="Вперёд"
+                icon={<ChevronRightIcon />}
+                onClick={() => scrollBy(320)}
+                position="absolute"
+                right={-12}
+                top="50%"
+                transform="translateY(-50%)"
+                zIndex={2}
+                variant="ghost"
+                display={{ base: 'none', md: 'inline-flex' }}
+              />
+
+              {/* Скроллер */}
+              <HStack
+                ref={scrollerRef}
+                spacing={4}
+                overflowX="auto"
+                overflowY="hidden"
+                py={2}
+                px={{ base: 1, md: 10 }}  // запас под стрелки
+                align="stretch"
+                css={{
+                  scrollSnapType: 'x mandatory',
+                  scrollbarWidth: 'thin',
+                }}
+              >
+                {laneItems.map((hotel) => (
+                  <Box
+                    key={hotel.id}
+                    minW="280px"
+                    maxW="280px"
+                    scrollSnapAlign="start"
+                    flex="0 0 auto"
+                  >
+                    <HotelCard hotel={hotel} variant="vertical" />
+                  </Box>
+                ))}
+
+                {/* Сентинел для IntersectionObserver (должен быть в потоке справа) */}
+                <Box ref={sentinelRef} minW="1px" minH="1px" />
+              </HStack>
+
+              {isLaneLoading && (
+                <Box position="absolute" right={{ base: 3, md: 12 }} top={3}>
+                  <Spinner size="sm" />
+                </Box>
+              )}
             </Box>
+
 
           </VStack>
         </Container>
