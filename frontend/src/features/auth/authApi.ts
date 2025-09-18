@@ -1,59 +1,102 @@
 import { baseApi } from '../../app/api/baseApi';
+import { setCredentials } from './authSlice';
 
 type LoginRequest = {
   email: string;
   password: string;
 };
 
-type RegisterRequest = LoginRequest & {
+type RegisterRequest = {
   name: string;
+  email: string;
+  password: string;
+  city?: string;
+  date_of_birth?: string;
+  role?: string;
 };
 
-type User = {
+export type User = {
   id: string;
   email: string;
   name: string;
+  avatar?: string;
+  phone?: string;
+  dateOfBirth?: string;
+  role?: string;
+  city?: string;
+  createdAt: string;
+  updatedAt: string;
+  address?: {
+    street?: string;
+    city?: string;
+    country?: string;
+    zipCode?: string;
+  };
 };
 
-type AuthResponse = {
-  token: string;
-  user: User;
+type LoginResponse = {
+  access_token: string;
+  refresh_token?: string;
 };
 
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    login: builder.mutation<AuthResponse, LoginRequest>({
+    login: builder.mutation<LoginResponse, LoginRequest>({
       query: (credentials) => ({
         url: '/auth/login',
         method: 'POST',
         body: credentials,
       }),
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+
+          if (!data.access_token) {
+            throw new Error('Отсутствует access_token в ответе на запрос');
+          }
+          const accessToken = data.access_token;
+    
+          localStorage.setItem('access_token', accessToken);
+          if (data.refresh_token) localStorage.setItem('refresh_token', data.refresh_token);
+    
+          dispatch(setCredentials({ token: accessToken }));
+    
+          const me = await dispatch(
+            authApi.endpoints.getMe.initiate(undefined, { forceRefetch: true })
+          ).unwrap();
+    
+          dispatch(setCredentials({ user: me }));
+        } catch (error) {
+          console.error('Login error:', error);
+        }
+      },
     }),
-    register: builder.mutation<AuthResponse, RegisterRequest>({
+    
+    register: builder.mutation<void, RegisterRequest>({
       query: (userData) => ({
         url: '/auth/register',
         method: 'POST',
-        body: userData,
+        body: {
+          name: userData.name,
+          email: userData.email,
+          password: userData.password,
+          city: userData.city || '',
+          date_of_birth: userData.date_of_birth || null,
+          role: userData.role || 'user',
+        },
       }),
     }),
+
     getMe: builder.query<User, void>({
-      query: () => '/users/me',
+      query: () => '/users/profile',
       providesTags: ['Me'],
     }),
-    updateProfile: builder.mutation<User, Partial<User>>({
-      query: (userData) => ({
-        url: '/users/me',
-        method: 'PATCH',
-        body: userData,
-      }),
-      invalidatesTags: ['Me'],
-    }),
   }),
+  overrideExisting: false,
 });
 
 export const {
   useLoginMutation,
   useRegisterMutation,
   useGetMeQuery,
-  useUpdateProfileMutation,
 } = authApi;

@@ -8,6 +8,7 @@ import AppRoutes from '@/app/router/Routes';
 import theme from '@/styles/theme';
 import 'leaflet/dist/leaflet.css';
 
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>

@@ -114,7 +114,7 @@ export const HotelDetailPage = () => {
     );
   }
 
-  const mainImage = hotel.images[selectedImage] || hotel.images[0];
+  const mainImage = hotel.images?.[selectedImage] || hotel.images?.[0];
 
   return (
     <Box>
@@ -128,7 +128,7 @@ export const HotelDetailPage = () => {
           h="100%"
         />
         
-        {hotel.images.length > 1 && (
+        {(hotel.images || []).length > 1 && (
           <>
             <IconButton
               aria-label="Previous image"
@@ -140,7 +140,7 @@ export const HotelDetailPage = () => {
               bg="blackAlpha.600"
               color="white"
               _hover={{ bg: 'blackAlpha.700' }}
-              onClick={() => setSelectedImage((prev) => (prev - 1 + hotel.images.length) % hotel.images.length)}
+              onClick={() => setSelectedImage((prev) => (prev - 1 + (hotel.images || []).length) % (hotel.images || []).length)}
               borderRadius="full"
             />
             <IconButton
@@ -153,7 +153,7 @@ export const HotelDetailPage = () => {
               bg="blackAlpha.600"
               color="white"
               _hover={{ bg: 'blackAlpha.700' }}
-              onClick={() => setSelectedImage((prev) => (prev + 1) % hotel.images.length)}
+              onClick={() => setSelectedImage((prev) => (prev + 1) % ((hotel.images || []).length))}
               borderRadius="full"
             />
           </>
@@ -196,7 +196,7 @@ export const HotelDetailPage = () => {
                 </Heading>
                 <HStack color="gray.600" mb={4} spacing={1}>
                   <Icon as={FaMapMarkerAlt} />
-                  <Text>{hotel.location}</Text>
+                  <Text>{hotel.city}</Text>
                 </HStack>
                 <Rating value={hotel.rating} size="md" />
               </Box>

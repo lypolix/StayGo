@@ -23,13 +23,13 @@ export interface HotelImage {
 
 export interface RoomType {
   id: string;
-  name: string;
+  beds: number;
+  price: number;
+  rating: number;
   description: string;
-  maxOccupancy: number;
-  pricePerNight: number;
-  availableRooms: number;
-  amenities: Amenity[];
-  images: HotelImage[];
+  hotelId: string;
+  images?: string[];
+  isAvailable?: boolean;
 }
 
 export interface Review {
@@ -47,64 +47,30 @@ export interface Review {
 export interface Hotel {
   id: string;
   name: string;
+  city: string;
   description: string;
-  address: {
-    street: string;
-    city: string;
-    state: string;
-    country: string;
-    zipCode: string;
-    coordinates?: {
-      lat: number;
-      lng: number;
-    };
-  };
-  location: string; // Short location string for display
-  rating: number;
-  starRating: 1 | 2 | 3 | 4 | 5;
-  price: number; // Starting price
-  amenities: Amenity[];
-  images: HotelImage[];
-  roomTypes: RoomType[];
-  policies?: {
-    checkIn?: string;
-    checkOut?: string;
-    cancellation?: string;
-    petsAllowed?: boolean;
-    creditCardsAccepted?: boolean;
-  };
-  contact?: {
-    phone?: string;
-    email?: string;
-    website?: string;
-  };
-  reviews?: Review[];
-  reviewCount?: number;
-  averageRating?: number;
-  distanceFromCenter?: number; // in km/miles
-  isFeatured?: boolean;
-  isAvailable?: boolean;
+  stars: number;
+  roomId: string;  // Single room ID reference
+  address: string;  // Simple string address
+  rooms: string[];  // Array of room IDs
+  rating?: number;
+  images?: HotelImage[];
+  amenities?: Amenity[];
   isFavorite?: boolean;
-  lastRenovatedYear?: number;
-  createdAt?: string;
-  updatedAt?: string;
 }
 
 export interface HotelSearchParams {
   search?: string;
   city?: string;
-  checkIn?: string;
-  checkOut?: string;
-  guests?: number;
-  rooms?: number;
   minPrice?: number;
   maxPrice?: number;
   minRating?: number;
-  amenities?: string; // Comma-separated list of amenity IDs
-  sortBy?: 'price' | 'rating' | 'distance';
-  sortOrder?: 'asc' | 'desc';
+  minStars?: number;
+  amenities?: string[];
   page?: number;
   limit?: number;
+  sortBy?: 'price' | 'rating' | 'stars';
+  sortOrder?: 'asc' | 'desc';
 }
 
 export interface HotelSearchResponse {
@@ -118,49 +84,53 @@ export interface HotelSearchResponse {
   filters?: {
     minPrice: number;
     maxPrice: number;
-    amenities: Array<{ id: string; name: string; count: number }>;
-    starRatings: Array<{ rating: number; count: number }>;
+    cities: Array<{ name: string; count: number }>;
+    starRatings: Array<{ stars: number; count: number }>;
   };
 }
 
 export interface BookingRequest {
-  hotelId: string;
-  roomTypeId: string;
-  checkIn: string;
-  checkOut: string;
+  roomId: string;
+  userId: string;
+  checkIn: string; // ISO date string
+  checkOut: string; // ISO date string
   guests: number;
-  rooms: number;
+  totalPrice: number;
   guestInfo: {
     firstName: string;
     lastName: string;
     email: string;
-    phone?: string;
+    phone: string;
     specialRequests?: string;
   };
   paymentInfo: {
     cardNumber: string;
     cardHolder: string;
-    expiryDate: string;
+    expiryDate: string; // MM/YY format
     cvv: string;
   };
 }
 
 export interface BookingResponse {
   id: string;
-  bookingNumber: string;
-  hotel: Hotel;
-  roomType: RoomType;
+  roomId: string;
+  userId: string;
+  hotelId: string;
   checkIn: string;
   checkOut: string;
   guests: number;
-  rooms: number;
   totalPrice: number;
   status: 'confirmed' | 'pending' | 'cancelled' | 'completed';
   guestInfo: {
     firstName: string;
     lastName: string;
     email: string;
-    phone?: string;
+    phone: string;
+    specialRequests?: string;
+  };
+  paymentInfo: {
+    lastFourDigits: string;
+    cardType?: string;
   };
   createdAt: string;
   updatedAt: string;

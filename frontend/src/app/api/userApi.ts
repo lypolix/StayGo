@@ -1,20 +1,76 @@
 import { baseApi } from '@/app/api/baseApi';
+import type { UserProfile, UpdateProfileData } from '@/features/user/types';
 
 export const userApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    // Get user profile
-    getProfile: builder.query<{
-      id: string;
-      email: string;
-      name: string;
-      avatar?: string;
-    }, void>({
+    // Get current user profile
+    getProfile: builder.query<UserProfile, void>({
       query: () => '/users/me',
       providesTags: ['Me'],
     }),
+
+    // Update user profile
+    updateProfile: builder.mutation<UserProfile, UpdateProfileData>({
+      query: (data) => ({
+        url: '/users/me',
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: ['Me'],
+    }),
+
+    // Get user's favorite hotels
+    getFavoriteHotels: builder.query<Array<{
+      id: string;
+      name: string;
+      description: string;
+      address: {
+        city: string;
+        country: string;
+      };
+      starRating: number;
+      image: string;
+      price: number;
+      amenities: string[];
+    }>, void>({
+      query: () => '/users/me/favorites',
+      providesTags: (result) => 
+        result
+          ? [
+              ...result.map(({ id }) => ({ type: 'Favorites' as const, id })),
+              { type: 'Favorites', id: 'LIST' },
+            ]
+          : [{ type: 'Favorites', id: 'LIST' }],
+    }),
+
+    // Add hotel to favorites
+    addToFavorites: builder.mutation<void, string>({
+      query: (hotelId) => ({
+        url: `/users/me/favorites/${hotelId}`,
+        method: 'POST',
+      }),
+      invalidatesTags: ['Favorites'],
+    }),
+
+    // Remove hotel from favorites
+    removeFromFavorites: builder.mutation<void, string>({
+      query: (hotelId) => ({
+        url: `/users/me/favorites/${hotelId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (_, __, hotelId) => [
+        { type: 'Favorites', id: hotelId },
+        { type: 'Favorites', id: 'LIST' },
+      ],
+    }),
   }),
+  overrideExisting: false,
 });
 
 export const {
   useGetProfileQuery,
+  useUpdateProfileMutation,
+  useGetFavoriteHotelsQuery,
+  useAddToFavoritesMutation,
+  useRemoveFromFavoritesMutation,
 } = userApi;

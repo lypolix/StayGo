@@ -105,7 +105,16 @@ export interface User extends BaseEntity {
   email: string;
   name: string;
   avatar?: string;
-  phoneNumber?: string;
+  phone?: string;
+  dateOfBirth?: string;
+  role?: string;
+  city?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    country?: string;
+    zipCode?: string;
+  };
   preferences?: {
     language?: string;
     currency?: string;

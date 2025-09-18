@@ -35,6 +35,8 @@ const registerSchema = z
         'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
       ),
     confirmPassword: z.string(),
+    date_of_birth: z.string().optional().nullable(),
+    city: z.string().optional(),
     acceptTerms: z.boolean().refine((val) => val === true, {
       message: 'You must accept the terms and conditions',
     }),
@@ -64,16 +66,28 @@ export const RegisterPage = () => {
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
-      const { token } = await registerUser({
+      const response = await registerUser({
         name: data.name,
         email: data.email,
         password: data.password,
+        date_of_birth: data.date_of_birth || null,
+        city: data.city,
       }).unwrap();
+
+      // Create a user object with the minimum required fields
+      const user = {
+        id: '', // The server should return the user ID
+        name: data.name,
+        email: data.email,
+        role: 'user', // Default role, adjust as needed
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
 
       dispatch(
         setCredentials({
-          token,
-          remember: true,
+          user,
+          token: response.token,
         }),
       );
 
@@ -179,6 +193,22 @@ export const RegisterPage = () => {
               </InputGroup>
               <FormErrorMessage>
                 {errors.confirmPassword && errors.confirmPassword.message}
+              </FormErrorMessage>
+            </FormControl>
+
+            <FormControl id="date_of_birth" isInvalid={!!errors.date_of_birth}>
+              <FormLabel>Date of Birth</FormLabel>
+              <Input type="date" {...register('date_of_birth')} />
+              <FormErrorMessage>
+                {errors.date_of_birth && errors.date_of_birth.message}
+              </FormErrorMessage>
+            </FormControl>
+
+            <FormControl id="city" isInvalid={!!errors.city}>
+              <FormLabel>City</FormLabel>
+              <Input type="text" {...register('city')} />
+              <FormErrorMessage>
+                {errors.city && errors.city.message}
               </FormErrorMessage>
             </FormControl>
 

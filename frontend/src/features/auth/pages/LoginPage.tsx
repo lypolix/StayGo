@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
-import { useForm, type SubmitHandler } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import {
@@ -16,133 +16,182 @@ import {
   Link,
   useToast,
   FormErrorMessage,
+  Heading,
+  Flex,
 } from '@chakra-ui/react';
 import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
-import { useLoginMutation } from '../api';
+import { useLoginMutation, useGetMeQuery } from '../authApi';
 import { setCredentials } from '../authSlice';
-import { useAppDispatch } from '@/app/hooks';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
 
 const loginSchema = z.object({
-    email: z.string().email('Invalid email address'),
-    password: z.string().min(6, 'Password must be at least 6 characters'),
-    remember: z.boolean().optional().default(false), // 👈 optional on input, boolean after parse
+  email: z.string().email('Введите корректный email'),
+  password: z.string().min(6, 'Пароль должен содержать минимум 6 символов'),
 });
-  
 
-type LoginFormInput  = z.input<typeof loginSchema>;  // { email: string; password: string; remember?: boolean }
-type LoginFormValues = z.output<typeof loginSchema>; // { email: string; password: string; remember: boolean }
-
+type LoginFormValues = z.infer<typeof loginSchema>;
 
 export const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [login, { isLoading }] = useLoginMutation();
+  const [login, { isLoading, isSuccess }] = useLoginMutation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const toast = useToast();
+  const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated);
   
-  const from = location.state?.from?.pathname || '/';
+  // Get the redirect location or default to '/profile'
+  const from = location.state?.from?.pathname || '/profile';
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, from, navigate]);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginFormInput, any, LoginFormValues>({
+  } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { remember: false }, // keeps the checkbox controlled
+    defaultValues: {
+      email: '',
+      password: '',
+    },
   });
-  
 
-  const onSubmit: SubmitHandler<LoginFormValues> = async (data) => {
-    const { token } = await login({ email: data.email, password: data.password }).unwrap();
-    dispatch(setCredentials({ token, remember: data.remember }));
-    navigate(from, { replace: true });
-    toast({ title: 'Login successful', status: 'success', duration: 3000, isClosable: true });
+  const onSubmit = async (data: LoginFormValues) => {
+    try {
+      const response = await login({
+        email: data.email,
+        password: data.password,
+      }).unwrap();
+
+      // Persist tokens defensively regardless of onQueryStarted
+      const accessToken = (response as any).access_token || (response as any).token;
+      const refreshToken = (response as any).refresh_token;
+      if (accessToken) {
+        localStorage.setItem('access_token', accessToken);
+      }
+      if (refreshToken) {
+        localStorage.setItem('refresh_token', refreshToken);
+      }
+
+      // Ensure auth state is set before navigating
+      if (accessToken) {
+        dispatch(setCredentials({ user: (response as any).user, token: accessToken }));
+      }
+
+      // Show success message
+      toast({
+        title: 'Вход выполнен успешно',
+        status: 'success',
+        duration: 2000,
+        isClosable: true,
+      });
+
+      // The onQueryStarted in authApi will handle setting credentials
+      // Now navigate to the intended page or profile
+      const from = location.state?.from?.pathname || '/profile';
+      navigate(from, { replace: true });
+
+    } catch (err: any) {
+      console.error('Login error:', err);
+      
+      let errorMessage = 'Произошла ошибка при входе';
+      if (err.status === 401) {
+        errorMessage = 'Неверный email или пароль';
+      } else if (err.data?.message) {
+        errorMessage = err.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
+      toast({
+        title: 'Ошибка входа',
+        description: errorMessage,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    }
   };
 
   return (
-    <Stack spacing={8} maxW="md" mx="auto" py={12} px={6}>
-      <Stack align="center">
-        <Text fontSize="2xl" fontWeight="bold">
-          Sign in to your account
-        </Text>
-        <Text color="gray.600">
-          Don't have an account?{' '}
-          <Link as={RouterLink} to="/register" color="brand.500">
-            Sign up
-          </Link>
-        </Text>
-      </Stack>
-      <Box rounded="lg" bg="white" boxShadow="lg" p={8}>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <Stack spacing={6}>
-            <FormControl id="email" isInvalid={!!errors.email}>
-              <FormLabel>Email address</FormLabel>
-              <Input
-                type="email"
-                {...register('email')}
-                placeholder="Enter your email"
-              />
-              <FormErrorMessage>
-                {errors.email && errors.email.message}
-              </FormErrorMessage>
-            </FormControl>
-            
-            <FormControl id="password" isInvalid={!!errors.password}>
-              <FormLabel>Password</FormLabel>
-              <InputGroup>
+    <Flex minH="100vh" align="center" justify="center" bg="gray.50">
+      <Stack spacing={8} mx="auto" maxW="lg" py={12} px={6} w="100%">
+        <Stack align="center">
+          <Heading fontSize="4xl" textAlign="center">
+            Вход в аккаунт
+          </Heading>
+          <Text fontSize="lg" color="gray.600">
+            Войдите, чтобы продолжить
+          </Text>
+        </Stack>
+        <Box rounded="lg" bg="white" boxShadow="lg" p={8}>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <Stack spacing={4}>
+              <FormControl id="email" isInvalid={!!errors.email}>
+                <FormLabel>Email</FormLabel>
                 <Input
-                  type={showPassword ? 'text' : 'password'}
-                  {...register('password')}
-                  placeholder="Enter your password"
+                  type="email"
+                  {...register('email')}
+                  autoComplete="username"
                 />
-                <InputRightElement h="full">
-                  <Button
-                    variant="ghost"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <ViewOffIcon /> : <ViewIcon />}
-                  </Button>
-                </InputRightElement>
-              </InputGroup>
-              <FormErrorMessage>
-                {errors.password && errors.password.message}
-              </FormErrorMessage>
-            </FormControl>
-            
-            <Stack spacing={6}>
-              <Stack
-                direction={{ base: 'column', sm: 'row' }}
-                align="start"
-                justify="space-between"
-              >
-                <Box display="flex" alignItems="center">
-                  <input
-                    type="checkbox"
-                    id="remember"
-                    {...register('remember')}
-                    className="mr-2"
+                <FormErrorMessage>
+                  {errors.email && errors.email.message}
+                </FormErrorMessage>
+              </FormControl>
+              
+              <FormControl id="password" isInvalid={!!errors.password}>
+                <FormLabel>Пароль</FormLabel>
+                <InputGroup>
+                  <Input
+                    type={showPassword ? 'text' : 'password'}
+                    {...register('password')}
+                    autoComplete="current-password"
                   />
-                  <label htmlFor="remember">Remember me</label>
-                </Box>
-                <Link as={RouterLink} to="/forgot-password" color="brand.500">
-                  Forgot password?
-                </Link>
+                  <InputRightElement h="full">
+                    <Button
+                      variant="ghost"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <ViewOffIcon /> : <ViewIcon />}
+                    </Button>
+                  </InputRightElement>
+                </InputGroup>
+                <FormErrorMessage>
+                  {errors.password && errors.password.message}
+                </FormErrorMessage>
+              </FormControl>
+
+              <Stack spacing={10} pt={2}>
+                <Button
+                  type="submit"
+                  size="lg"
+                  colorScheme="blue"
+                  isLoading={isLoading}
+                  loadingText="Вход..."
+                >
+                  Войти
+                </Button>
               </Stack>
               
-              <Button
-                type="submit"
-                colorScheme="brand"
-                isLoading={isLoading}
-                loadingText="Signing in..."
-              >
-                Sign in
-              </Button>
+              <Stack pt={6}>
+                <Text align="center">
+                  Нет аккаунта?{' '}
+                  <Link as={RouterLink} to="/register" color="blue.400">
+                    Зарегистрируйтесь
+                  </Link>
+                </Text>
+              </Stack>
             </Stack>
-          </Stack>
-        </form>
-      </Box>
-    </Stack>
+          </form>
+        </Box>
+      </Stack>
+    </Flex>
   );
 };
 

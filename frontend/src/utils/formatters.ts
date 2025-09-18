@@ -1,14 +1,14 @@
 /**
  * Formats a number as a currency string
  * @param amount - The amount to format
- * @param currency - The currency code (default: 'USD')
- * @param locale - The locale to use for formatting (default: 'en-US')
+ * @param currency - The currency code (default: 'RUB')
+ * @param locale - The locale to use for formatting (default: 'ru-RU')
  * @returns Formatted currency string
  */
 export const formatCurrency = (
   amount: number,
-  currency: string = 'USD',
-  locale: string = 'en-US'
+  currency: string = 'RUB',
+  locale: string = 'ru-RU'
 ): string => {
   // Handle invalid or missing amount
   if (typeof amount !== 'number' || isNaN(amount)) {

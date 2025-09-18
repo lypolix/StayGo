@@ -1,11 +1,19 @@
-export interface User {
-  id: string;
+import type { BaseEntity } from '@/shared/types';
+
+export interface User extends BaseEntity {
   email: string;
   name: string;
   avatar?: string;
-  createdAt: string;
-  updatedAt: string;
-  role: string;
+  phone?: string;
+  dateOfBirth?: string;
+  role?: string;
+  city?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    country?: string;
+    zipCode?: string;
+  };
 }
 
 export interface AuthState {

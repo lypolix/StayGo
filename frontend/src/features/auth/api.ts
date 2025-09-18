@@ -1,5 +1,6 @@
 import { baseApi } from '@/app/api/baseApi';
 import type { User } from './types';
+import { setCredentials, logout } from './authSlice';
 
 export interface LoginRequest {
   email: string;
@@ -9,6 +10,9 @@ export interface LoginRequest {
 
 export interface RegisterRequest extends LoginRequest {
   name: string;
+  date_of_birth?: string | null;
+  city?: string;
+  role?: string;
 }
 
 export interface UserResponse {
@@ -33,16 +37,11 @@ export const authApi = baseApi.injectEndpoints({
       onQueryStarted: async (_, { dispatch, queryFulfilled }) => {
         try {
           const { data } = await queryFulfilled;
-          dispatch(
-            authApi.util.upsertQueryData('getUserProfile', undefined, {
-              id: '',
-              email: '',
-              name: '',
-              role: 'user',
-              createdAt: '',
-              updatedAt: '',
-            })
-          );
+          // The backend only returns tokens, we'll fetch the user profile separately
+          if (data.token) {
+            // Trigger a refetch of the user profile
+            dispatch(authApi.endpoints.getMe.initiate(undefined, { forceRefetch: true }));
+          }
         } catch (error) {
           console.error('Login failed:', error);
         }
@@ -57,17 +56,24 @@ export const authApi = baseApi.injectEndpoints({
       }),
     }),
 
-    getUserProfile: builder.query<User, void>({
-      query: () => '/users/me',
+    // Get current user's profile
+    getMe: builder.query<User, void>({
+      query: () => '/users/profile',
       providesTags: ['Me'],
       onQueryStarted: async (_, { dispatch, queryFulfilled }) => {
         try {
           const { data } = await queryFulfilled;
+          // Update the auth state with the user data
           dispatch(
-            authApi.util.upsertQueryData('getUserProfile', undefined, data)
+            setCredentials({
+              user: data,
+              token: localStorage.getItem('access_token') || ''
+            })
           );
         } catch (error) {
           console.error('Failed to fetch user profile:', error);
+          // If the request fails, clear the auth state
+          dispatch(logout());
         }
       },
     }),
@@ -77,5 +83,6 @@ export const authApi = baseApi.injectEndpoints({
 export const {
   useLoginMutation,
   useRegisterMutation,
-  useGetUserProfileQuery,
+  useGetMeQuery,
+  useGetMeQuery: useGetUserProfileQuery, // Alias for backward compatibility
 } = authApi;

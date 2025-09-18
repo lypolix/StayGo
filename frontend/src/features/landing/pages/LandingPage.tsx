@@ -15,7 +15,6 @@ import {
   SimpleGrid,
   VStack,
   HStack,
-  Link,
   FormControl,
   FormLabel,
   NumberInput,
@@ -32,6 +31,8 @@ import {
 import { SearchIcon, CalendarIcon } from '@chakra-ui/icons';
 import { FaRegUser, FaRegHeart, FaRegClock, FaMapMarkerAlt } from 'react-icons/fa';
 import { formatDateToDisplay, pluralGuests } from '@/utils/dateUtils';
+import { HotelCard } from '@/features/hotels/components/HotelCard';
+import { mockHotels } from '@/features/landing/mocks/hotels';
 
 export const LandingPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -122,35 +123,6 @@ export const LandingPage = () => {
 
   return (
     <Box bg={bgColor} minH="100vh" color={textColor}>
-      {/* Навигация */}
-      <Box borderBottomWidth="1px" borderColor={borderColor} bg={cardBg} position="sticky" top={0} zIndex={10}>
-        <Container maxW="container.xl" py={4}>
-          <Flex justify="space-between" align="center">
-            <HStack spacing={2} alignItems="center">
-              <Box w={8} h={8} bgGradient={gradient} rounded="lg" />
-              <Text fontSize="xl" fontWeight="bold" bgGradient={gradient} bgClip="text">
-                StayGo
-              </Text>
-            </HStack>
-            <HStack spacing={4}>
-              <Link as={RouterLink} to="/login" color={mutedTextColor} _hover={{ color: accentColor }}>
-                Войти
-              </Link>
-              <Button
-                as={RouterLink}
-                to="/register"
-                bgGradient={gradient}
-                _hover={{ opacity: 0.9 }}
-                color="white"
-                size={isMobile ? 'sm' : 'md'}
-              >
-                Регистрация
-              </Button>
-            </HStack>
-          </Flex>
-        </Container>
-      </Box>
-
       {/* Хиро */}
       <Box position="relative" overflow="hidden" py={20}>
         <Box
@@ -179,7 +151,7 @@ export const LandingPage = () => {
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.6 }}>
               <Text fontSize="xl" color={mutedTextColor} maxW="2xl">
-                Откройте для себя отели, которым доверяют друзья. Реальные отзывы и реальные впечатления.
+                Друзья уже съездили. Попробуйте и вы!
               </Text>
             </motion.div>
 
@@ -338,6 +310,28 @@ export const LandingPage = () => {
                 </Box>
               </motion.div>
             </Box>
+            {/* Популярные отели (моки) */}
+            <Box w="full" mt={10}>
+              <VStack spacing={6} align="stretch">
+                <Heading size="lg" textAlign="left">
+                  Популярные отели
+                </Heading>
+
+                <SimpleGrid columns={{ base: 1, sm: 2, lg: 3 }} spacing={6}>
+                  {mockHotels.map((hotel) => (
+                    <motion.div
+                      key={hotel.id}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.35 }}
+                    >
+                      <HotelCard hotel={hotel} />
+                    </motion.div>
+                  ))}
+                </SimpleGrid>
+              </VStack>
+            </Box>
+
           </VStack>
         </Container>
       </Box>
