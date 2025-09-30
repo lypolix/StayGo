@@ -1,86 +1,131 @@
 package handlers
 
 import (
-    "backend/internal/models"
-    "backend/internal/services"
-    "context"
-    "net/http"
-    "strconv"
-    "time"
+	"backend/internal/erors"
+	"backend/internal/models"
+	"backend/internal/services"
+	"context"
+	"errors"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
 
-    "github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin"
 )
 
-// RoomHandler реализует обработчики для работы с комнатами
 type RoomHandler struct {
-    roomService services.RoomServiceInterface
+	roomService services.RoomServiceInterface
 }
 
-// NewRoomHandler создает новый экземпляр RoomHandler
-func NewRoomHandler(service services.RoomServiceInterface) *RoomHandler {
-    return &RoomHandler{
-        roomService: service,
-    }
+func NewRoomHandler(service services.RoomServiceInterface) RoomHandler {
+	return RoomHandler{roomService: service}
 }
 
-// Create создает новую комнату, только для админов
-func (h *RoomHandler) Create(c *gin.Context) {
-    roleVal, exists := c.Get("userRole")
-    role, ok := roleVal.(string)
-    if !exists || !ok || role != "admin" {
-        c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
-        return
-    }
+func (h RoomHandler) Create(c *gin.Context) {
+	roleVal, exists := c.Get("userRole")
+	role, ok := roleVal.(string)
+	if !exists || !ok || role != "admin" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
+		return
+	}
 
-    var room models.Room
-    if err := c.ShouldBindJSON(&room); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid parameters"})
-        return
-    }
+	var room models.Room
+	if err := c.ShouldBindJSON(&room); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid parameters"})
+		return
+	}
 
-    ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
-    defer cancel()
+	// Базовая валидация до БД
+	if room.HotelID <= 0 ||
+		room.Beds <= 0 ||
+		room.Price < 0 ||
+		strings.TrimSpace(room.Description) == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+		return
+	}
 
-    err := h.roomService.CreateRoom(ctx, &room)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
-        return
-    }
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
 
-    c.JSON(http.StatusCreated, room)
+	if err := h.roomService.CreateRoom(ctx, &room); err != nil {
+		switch {
+		case errors.Is(err, erors.ErrInvalidHotelID):
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid hotel_id"})
+			return
+		case errors.Is(err, erors.ErrInvalidInput):
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			return
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			return
+		}
+	}
+
+	c.JSON(http.StatusCreated, room)
 }
 
+func (h RoomHandler) ListByHotel(c *gin.Context) {
+	hotelIDStr := c.Param("hotel_id")
+	hotelID, err := strconv.ParseInt(hotelIDStr, 10, 64)
+	if err != nil || hotelID <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid hotel id"})
+		return
+	}
 
-// ListByHotel возвращает список комнат по отелю
-func (h *RoomHandler) ListByHotel(c *gin.Context) {
-    hotelIDStr := c.Param("hotel_id")
-    hotelID, err := strconv.ParseInt(hotelIDStr, 10, 64)
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid hotel id"})
-        return
-    }
-    rooms, err := h.roomService.GetRoomsByHotelID(c.Request.Context(), hotelID)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get rooms"})
-        return
-    }
-    c.JSON(http.StatusOK, rooms)
+	rooms, err := h.roomService.GetRoomsByHotelID(c.Request.Context(), hotelID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get rooms"})
+		return
+	}
+
+	c.JSON(http.StatusOK, rooms)
 }
 
-// GetByID возвращает комнату по ID
-func (h *RoomHandler) GetByID(c *gin.Context) {
-    roomIDStr := c.Param("room_id")
-    roomID, err := strconv.ParseInt(roomIDStr, 10, 64)
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid room id"})
-        return
-    }
+func (h RoomHandler) GetByID(c *gin.Context) {
+	roomIDStr := c.Param("roomid")
+	roomID, err := strconv.ParseInt(roomIDStr, 10, 64)
+	if err != nil || roomID <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid room id"})
+		return
+	}
 
-    room, err := h.roomService.GetByID(c.Request.Context(), roomID)
-    if err != nil {
-        c.JSON(http.StatusNotFound, gin.H{"error": "room not found"})
-        return
-    }
+	room, err := h.roomService.GetByID(c.Request.Context(), roomID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "room not found"})
+		return
+	}
 
-    c.JSON(http.StatusOK, room)
+	c.JSON(http.StatusOK, room)
 }
+
+func (h RoomHandler) Search(c *gin.Context) {
+	city := strings.TrimSpace(c.Query("city"))
+	guestsStr := strings.TrimSpace(c.Query("guests"))
+	if city == "" || guestsStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "city and guests are required"})
+		return
+	}
+	guests, err := strconv.Atoi(guestsStr)
+	if err != nil || guests <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid guests"})
+		return
+	}
+	checkin := strings.TrimSpace(c.Query("checkin"))
+	checkout := strings.TrimSpace(c.Query("checkout"))
+
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	rooms, err := h.roomService.SearchRooms(ctx, city, guests, checkin, checkout)
+	if err != nil {
+		if errors.Is(err, erors.ErrInvalidInput) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError,  gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, rooms)
+}
+

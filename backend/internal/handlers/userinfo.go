@@ -1,25 +1,39 @@
 package handlers
 
 import (
+	"context"
+	"errors"
+	"net/http"
+	"strings"
+	"time"
+
 	"backend/internal/erors"
 	"backend/internal/models"
 	"backend/internal/services"
-	"context"
-	"errors"
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"time"
 )
 
 type UserHandler struct {
 	userServ services.UserServInterface
 }
 
-func NewUserHandler(userServ services.UserServInterface) *UserHandler {
-	return &UserHandler{userServ: userServ}
+func NewUserHandler(userServ services.UserServInterface) UserHandler {
+	return UserHandler{userServ: userServ}
 }
 
-func (u *UserHandler) GetUserInfo(c *gin.Context) {
+func getUserId(c *gin.Context) (int64, error) {
+	v, ok := c.Get("userid")
+	if !ok {
+		return 0, errors.New("no user in context")
+	}
+	id, ok := v.(int64)
+	if !ok || id <= 0 {
+		return 0, errors.New("invalid user id in context")
+	}
+	return id, nil
+}
+
+func (u UserHandler) GetUserInfo(c *gin.Context) {
 	userID, err := getUserId(c)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "user authentication required"})
@@ -33,57 +47,57 @@ func (u *UserHandler) GetUserInfo(c *gin.Context) {
 	if err != nil {
 		if errors.Is(err, erors.ErrUserNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			return
 		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
 	c.JSON(http.StatusOK, user)
 }
 
-func (u *UserHandler) UpdateUserInfo(c *gin.Context) {
+func (u UserHandler) UpdateUserInfo(c *gin.Context) {
 	userID, err := getUserId(c)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "user authentication required"})
 		return
 	}
 
+	var dto models.UserUpdateDTO
+	if err := c.ShouldBindJSON(&dto); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid body"})
+		return
+	}
+
+	// Минимальная валидация — должны быть поля для обновления
+	if strings.TrimSpace(dto.Name) == "" &&
+		strings.TrimSpace(dto.Email) == "" &&
+		strings.TrimSpace(dto.City) == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "no fields to update"})
+		return
+	}
+
+	dto.ID = userID
+
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	var inputUserInfo models.UserUpdateDTO
-
-	if err := c.ShouldBindJSON(&inputUserInfo); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid JSON format"})
-		return
-	}
-
-	inputUserInfo.ID = userID
-
-	err = u.userServ.UpdateUserInfo(ctx, inputUserInfo)
-	if err != nil {
-		if errors.Is(err, erors.ErrUserNotFound) {
+	if err := u.userServ.UpdateUserInfo(ctx, dto); err != nil {
+		switch {
+		case errors.Is(err, erors.ErrInvalidInput):
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			return
+		case errors.Is(err, erors.ErrEmailTaken):
+			c.JSON(http.StatusBadRequest, gin.H{"error": "email already taken"})
+			return
+		case errors.Is(err, erors.ErrUserNotFound):
 			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
-		} else {
+			return
+		default:
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			return
 		}
-		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "user updated successfully"})
-}
-
-func getUserId(c *gin.Context) (int64, error) {
-	id, ok := c.Get("user_id")
-	if !ok {
-		return 0, errors.New("user id not found")
-	}
-
-	idInt, ok := id.(int64)
-	if !ok {
-		return 0, errors.New("user id is not int64")
-	}
-
-	return idInt, nil
+	c.Status(http.StatusNoContent)
 }

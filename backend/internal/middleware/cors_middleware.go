@@ -2,7 +2,7 @@ package middleware
 
 import "github.com/gin-gonic/gin"
 
-func СorsMiddleware() gin.HandlerFunc {
+func CorsMiddleware() gin.HandlerFunc {
 	allowedOrigins := map[string]bool{
 		"http://localhost:5173": true, // Development (docker-compose)
 		"http://localhost:3000": true, // На случай если запустят docker

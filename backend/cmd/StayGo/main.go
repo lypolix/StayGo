@@ -30,7 +30,7 @@ func main() {
     reviewRepo := repos.NewReviewRepo(db)
 
     // Сервисы
-    jwtService := services.NewJWTService(cfg)
+    jwtService := services.NewJWTService(*cfg)
     authService := services.NewAuthService(cfg, authRepo, logger.NewLogger())
     userService := services.NewUserInfoServ(userRepo)
     hotelService := services.NewHotelService(hotelRepo)
@@ -41,15 +41,15 @@ func main() {
     authMiddleware := middleware.NewAuthMiddleware(jwtService)
 
     // Хендлеры
-    authHandler := handlers.NewAuthHandler(authService, jwtService)
+    authHandler := handlers.NewAuthHandler(authService, &jwtService)
     userHandler := handlers.NewUserHandler(userService)
     hotelHandler := handlers.NewHotelHandler(hotelService)
     favoriteRoomHandler := handlers.NewFavoriteRoomHandler(favoriteRoomService) // Имплементация должна быть создана
     roomHandler := handlers.NewRoomHandler(roomService)                         // Имплементация должна быть создана
-    reviewHandler := handlers.NewReviewHandler(reviewRepo)
+    reviewHandler := handlers.NewReviewHandler(*reviewRepo)
 
     // Инициализация API с новыми хендлерами
-    apiHandlers := NewApi(authHandler, userHandler, authMiddleware, hotelHandler, favoriteRoomHandler, roomHandler, reviewHandler)
+    apiHandlers := NewApi(*authHandler, userHandler, authMiddleware, hotelHandler, favoriteRoomHandler, roomHandler, reviewHandler)
 
     r := apiHandlers.InitRoutes()
 

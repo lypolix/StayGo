@@ -1,72 +1,74 @@
 package services
 
 import (
-    "backend/internal/config"
-    "backend/internal/models"
-    "errors"
-    "time"
+	"errors"
+	"time"
 
-    "github.com/golang-jwt/jwt/v4"
+	"backend/internal/config"
+	"backend/internal/models"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 type JWTService struct {
-    config *config.Config
+	config config.Config
 }
 
 type Claims struct {
-    UserID int64  `json:"user_id"`
-    Email  string `json:"email"`
-    Role   string `json:"role"`
-    jwt.RegisteredClaims
+	UserID int64  `json:"userid"`
+	Email  string `json:"email"`
+	Role   string `json:"role"`
+	jwt.RegisteredClaims
 }
 
-func NewJWTService(cfg *config.Config) *JWTService {
-    return &JWTService{config: cfg}
+func NewJWTService(cfg config.Config) JWTService {
+	return JWTService{config: cfg}
 }
 
-func (j *JWTService) GenerateTokenPair(user *models.User) (string, string, error) {
-    accessClaims := &Claims{
-        UserID: user.ID,
-        Email:  user.Email,
-        Role:   user.Role,
-        RegisteredClaims: jwt.RegisteredClaims{
-            ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(j.config.JWT.AccessTokenTTL) * time.Second)),
-            IssuedAt:  jwt.NewNumericDate(time.Now()),
-        },
-    }
-    accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
-    accessString, err := accessToken.SignedString([]byte(j.config.JWT.Secret))
-    if err != nil {
-        return "", "", err
-    }
+func (j JWTService) GenerateTokenPair(user models.User) (string, string, error) {
+	now := time.Now()
 
-    refreshClaims := &Claims{
-        UserID: user.ID,
-        Email:  user.Email,
-        Role:   user.Role,
-        RegisteredClaims: jwt.RegisteredClaims{
-            ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(j.config.JWT.RefreshTokenTTL) * time.Second)),
-            IssuedAt:  jwt.NewNumericDate(time.Now()),
-        },
-    }
-    refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
-    refreshString, err := refreshToken.SignedString([]byte(j.config.JWT.Secret))
-    if err != nil {
-        return "", "", err
-    }
+	accessClaims := Claims{
+		UserID: user.ID,
+		Email:  user.Email,
+		Role:   user.Role,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(now.Add(time.Duration(j.config.JWT.AccessTokenTTL) * time.Second)),
+			IssuedAt:  jwt.NewNumericDate(now),
+		},
+	}
+	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
+	accessString, err := accessToken.SignedString([]byte(j.config.JWT.Secret))
+	if err != nil {
+		return "", "", err
+	}
 
-    return accessString, refreshString, nil
+	refreshClaims := Claims{
+		UserID: user.ID,
+		Email:  user.Email,
+		Role:   user.Role,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(now.Add(time.Duration(j.config.JWT.RefreshTokenTTL) * time.Second)),
+			IssuedAt:  jwt.NewNumericDate(now),
+		},
+	}
+	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
+	refreshString, err := refreshToken.SignedString([]byte(j.config.JWT.Secret))
+	if err != nil {
+		return "", "", err
+	}
+
+	return accessString, refreshString, nil
 }
 
-func (j *JWTService) ValidateToken(tokenString string) (*Claims, error) {
-    token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-        return []byte(j.config.JWT.Secret), nil
-    })
-    if err != nil {
-        return nil, err
-    }
-    if claims, ok := token.Claims.(*Claims); ok && token.Valid {
-        return claims, nil
-    }
-    return nil, errors.New("invalid token")
+func (j JWTService) ValidateToken(tokenString string) (*Claims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(j.config.JWT.Secret), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
+		return claims, nil
+	}
+	return nil, errors.New("invalid token")
 }

@@ -1,9 +1,13 @@
 package services
 
 import (
+	"context"
+	"errors"
+	"strings"
+
+	"backend/internal/erors"
 	"backend/internal/models"
 	"backend/internal/repos"
-	"context"
 )
 
 type userInfoServ struct {
@@ -22,25 +26,32 @@ func NewUserInfoServ(userServ repos.UserRepoInterface) UserServInterface {
 }
 
 func (u *userInfoServ) GetUserInfo(ctx context.Context, userID int64) (models.UserInfoDTO, error) {
-	var user models.UserInfoDTO
-
 	res, err := u.userRepo.GetUserInfo(ctx, userID)
 	if err != nil {
+		// Предполагается, что репозиторий возвращает erors.ErrUserNotFound при отсутствии
+		if errors.Is(err, erors.ErrUserNotFound) {
+			return models.UserInfoDTO{}, erors.ErrUserNotFound
+		}
 		return models.UserInfoDTO{}, err
 	}
 
-	user = models.UserInfoDTO{
+	user := models.UserInfoDTO{
 		Name:        res.Name,
 		City:        res.City,
 		Email:       res.Email,
 		DateOfBirth: res.DateOfBirth,
 		CreatedAt:   res.CreatedAt,
 	}
-
 	return user, nil
 }
 
 func (u *userInfoServ) UpdateUserInfo(ctx context.Context, user models.UserUpdateDTO) error {
+	// Минимальная валидация: нужны поля для обновления
+	if strings.TrimSpace(user.Name) == "" &&
+		strings.TrimSpace(user.Email) == "" &&
+		strings.TrimSpace(user.City) == "" {
+		return erors.ErrInvalidInput
+	}
 
 	userInfo := models.User{
 		ID:    user.ID,
@@ -49,8 +60,15 @@ func (u *userInfoServ) UpdateUserInfo(ctx context.Context, user models.UserUpdat
 		City:  user.City,
 	}
 
-	err := u.userRepo.UpdateUserInfo(ctx, userInfo)
-	if err != nil {
+	if err := u.userRepo.UpdateUserInfo(ctx, userInfo); err != nil {
+		// Сценарий: пользователь не найден
+		if errors.Is(err, erors.ErrUserNotFound) {
+			return erors.ErrUserNotFound
+		}
+		// Сценарий: конфликт уникальности email (рекомендуется, чтобы репозиторий маппил драйверную ошибку)
+		if errors.Is(err, erors.ErrEmailTaken) {
+			return erors.ErrEmailTaken
+		}
 		return err
 	}
 

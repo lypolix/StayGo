@@ -8,26 +8,25 @@ import (
 )
 
 type Api struct {
-	authHandler         *handlers.AuthHandler
-	userHandler         *handlers.UserHandler
-	authMiddleware      *middleware.AuthMiddleware
-	hotelHandler        *handlers.HotelHandler
-	favoriteRoomHandler *handlers.FavoriteRoomHandler
-	roomHandler         *handlers.RoomHandler
-	reviewHandler       *handlers.ReviewHandler
+	authHandler         handlers.AuthHandler
+	userHandler         handlers.UserHandler
+	authMiddleware      middleware.AuthMiddleware
+	hotelHandler        handlers.HotelHandler
+	favoriteRoomHandler handlers.FavoriteRoomHandler
+	roomHandler         handlers.RoomHandler
+	reviewHandler       handlers.ReviewHandler
 }
 
 func NewApi(
-	authHandler *handlers.AuthHandler,
-	userHandler *handlers.UserHandler,
-	authMiddleware *middleware.AuthMiddleware,
-	hotelHandler *handlers.HotelHandler,
-	favoriteRoomHandler *handlers.FavoriteRoomHandler,
-	roomHandler *handlers.RoomHandler,
-	reviewHandler *handlers.ReviewHandler,
-
-) *Api {
-	return &Api{
+	authHandler handlers.AuthHandler,
+	userHandler handlers.UserHandler,
+	authMiddleware middleware.AuthMiddleware,
+	hotelHandler handlers.HotelHandler,
+	favoriteRoomHandler handlers.FavoriteRoomHandler,
+	roomHandler handlers.RoomHandler,
+	reviewHandler handlers.ReviewHandler,
+) Api {
+	return Api{
 		authHandler:         authHandler,
 		userHandler:         userHandler,
 		authMiddleware:      authMiddleware,
@@ -38,48 +37,58 @@ func NewApi(
 	}
 }
 
-func (a *Api) InitRoutes() *gin.Engine {
+func (a Api) InitRoutes() *gin.Engine {
 	router := gin.New()
+	// CORS — уже есть, просто используем
+	router.Use(middleware.CorsMiddleware())
 
-	router.Use(middleware.СorsMiddleware())
-
+	// Auth — публичные
 	auth := router.Group("/auth")
 	{
-		auth.POST("/register", a.authHandler.Register) // регистрация
-		auth.POST("/login", a.authHandler.Login)       // логин
+		auth.POST("/register", a.authHandler.Register)
+		auth.POST("/login", a.authHandler.Login)
 	}
 
+	// Публичные данные отелей (GET): список, деталь, список комнат отеля
+	hotels := router.Group("/hotels")
+	{
+		hotels.GET("", a.hotelHandler.List)
+		hotels.GET("/:hotelid", a.hotelHandler.GetByID)
+		hotels.GET("/:hotelid/rooms", a.roomHandler.ListByHotel)
+	}
+
+	// Публичные данные по комнатам (GET деталь)
+	rooms := router.Group("/rooms")
+	{
+		rooms.GET("/:roomid", a.roomHandler.GetByID)
+		rooms.GET("/search", a.roomHandler.Search)
+	}
+
+	// Защищённые группы
 	users := router.Group("/users", a.authMiddleware.RequireAuth())
 	{
-		users.GET("/profile", a.userHandler.GetUserInfo)    // получение профиля
-		users.PUT("/profile", a.userHandler.UpdateUserInfo) // обновление информации
+		users.GET("/profile", a.userHandler.GetUserInfo)
+		users.PUT("/profile", a.userHandler.UpdateUserInfo)
 	}
 
-	hotels := router.Group("/hotels", a.authMiddleware.RequireAuth())
+	admin := router.Group("", a.authMiddleware.RequireAuth())
 	{
-		hotels.GET("", a.hotelHandler.List) //
-		hotels.POST("", a.hotelHandler.Create)
-		hotels.GET("/:hotel_id", a.hotelHandler.GetByID)
-		hotels.GET("/:hotel_id/rooms", a.roomHandler.ListByHotel)
-	}
-
-	rooms := router.Group("/rooms", a.authMiddleware.RequireAuth())
-	{
-		rooms.POST("", a.roomHandler.Create) // создать комнату (только админы)
-		rooms.GET("/:room_id", a.roomHandler.GetByID)
+		// Админ-создание отелей и комнат
+		admin.POST("/hotels", a.hotelHandler.Create)
+		admin.POST("/rooms", a.roomHandler.Create)
 	}
 
 	favorites := router.Group("/favorites", a.authMiddleware.RequireAuth())
 	{
-		favorites.POST("", a.favoriteRoomHandler.Add)               // добавить комнату в избранное
-		favorites.DELETE("/:room_id", a.favoriteRoomHandler.Remove) // удалить комнату из избранного
-		favorites.GET("", a.favoriteRoomHandler.List)               // получить список избранных комнат
+		favorites.POST("", a.favoriteRoomHandler.Add)
+		favorites.DELETE("/:roomid", a.favoriteRoomHandler.Remove)
+		favorites.GET("", a.favoriteRoomHandler.List)
 	}
 
 	reviews := router.Group("/reviews", a.authMiddleware.RequireAuth())
 	{
-		reviews.POST("", a.reviewHandler.Create) // добавить отзыв
-		reviews.GET("", a.reviewHandler.List)    // получить отзывы комнаты
+		reviews.POST("", a.reviewHandler.Create)
+		reviews.GET("", a.reviewHandler.List)
 	}
 
 	return router

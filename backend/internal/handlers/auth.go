@@ -77,7 +77,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
     log.Printf("User role: %s", user.Role)
 
-    accessToken, refreshToken, err := h.jwtService.GenerateTokenPair(&user)
+    accessToken, refreshToken, err := h.jwtService.GenerateTokenPair(user)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Внутренняя ошибка сервера"})
         return

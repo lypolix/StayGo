@@ -1,44 +1,43 @@
 package services
 
 import (
-    "backend/internal/models"
-    "backend/internal/repos"
-    "context"
+	"backend/internal/erors"
+	"backend/internal/models"
+	"backend/internal/repos"
+	"context"
+	"strings"
 )
 
-// RoomServiceInterface описывает методы сервиса комнат
 type RoomServiceInterface interface {
-    CreateRoom(ctx context.Context, room *models.Room) error
-    GetRoomsByHotelID(ctx context.Context, hotelID int64) ([]models.Room, error)
-    ListByHotel(ctx context.Context, hotelID int64) ([]models.Room, error)
-    GetByID(ctx context.Context, roomID int64) (*models.Room, error)
+	CreateRoom(ctx context.Context, room *models.Room) error
+	GetRoomsByHotelID(ctx context.Context, hotelID int64) ([]models.Room, error)
+	GetByID(ctx context.Context, roomID int64) (models.Room, error)
+	SearchRooms(ctx context.Context, city string, guests int, checkin, checkout string) ([]models.Room, error)
 }
 
 type roomService struct {
-    roomRepo repos.RoomRepoInterface
+	roomRepo repos.RoomRepoInterface
 }
 
-// NewRoomService создает новый сервис комнат
-func NewRoomService(repo repos.RoomRepoInterface) RoomServiceInterface {
-    return &roomService{
-        roomRepo: repo,
-    }
+func NewRoomService(roomRepo repos.RoomRepoInterface) RoomServiceInterface {
+	return roomService{roomRepo: roomRepo}
 }
 
-// CreateRoom создает новую комнату
-func (s *roomService) CreateRoom(ctx context.Context, room *models.Room) error {
-    return s.roomRepo.Create(room)
+func (s roomService) CreateRoom(ctx context.Context, room *models.Room) error {
+	return s.roomRepo.Create(ctx, room)
 }
 
-// GetRoomsByHotelID возвращает список комнат по ID отеля
-func (s *roomService) GetRoomsByHotelID(ctx context.Context, hotelID int64) ([]models.Room, error) {
-    return s.roomRepo.GetByHotelID(ctx, hotelID)
+func (s roomService) GetRoomsByHotelID(ctx context.Context, hotelID int64) ([]models.Room, error) {
+	return s.roomRepo.GetRoomsByHotelID(ctx, hotelID)
 }
 
-func (s *roomService) ListByHotel(ctx context.Context, hotelID int64) ([]models.Room, error) {
-    return s.roomRepo.GetRoomsByHotelID(ctx, hotelID)
+func (s roomService) GetByID(ctx context.Context, roomID int64) (models.Room, error) {
+	return s.roomRepo.GetRoomByID(ctx, roomID)
 }
 
-func (s *roomService) GetByID(ctx context.Context, roomID int64) (*models.Room, error) {
-    return s.roomRepo.GetRoomByID(ctx, roomID)
+func (s roomService) SearchRooms(ctx context.Context, city string, guests int, checkin, checkout string) ([]models.Room, error) {
+	if strings.TrimSpace(city) == "" || guests <= 0 {
+		return nil, erors.ErrInvalidInput
+	}
+	return s.roomRepo.SearchRooms(ctx, city, guests, checkin, checkout)
 }
