@@ -71,7 +71,7 @@ func (a Api) InitRoutes() *gin.Engine {
 		users.PUT("/profile", a.userHandler.UpdateUserInfo)
 	}
 
-	admin := router.Group("", a.authMiddleware.RequireAuth())
+	admin := router.Group("admin", a.authMiddleware.RequireAuth())
 	{
 		// Админ-создание отелей и комнат
 		admin.POST("/hotels", a.hotelHandler.Create)
