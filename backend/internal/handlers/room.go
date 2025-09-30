@@ -57,7 +57,7 @@ func (h RoomHandler) Create(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
 			return
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			c.JSON(http.StatusInternalServerError,  gin.H{"error": err.Error()})
 			return
 		}
 	}
