@@ -1,11 +1,16 @@
 package handlers
 
 import (
+	"context"
+	"errors"
 	"net/http"
 	"strconv"
+	"time"
 
+	"backend/internal/erors"
 	"backend/internal/models"
 	"backend/internal/repos"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -62,4 +67,44 @@ func (h ReviewHandler) List(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, reviews)
+}
+
+
+func (h ReviewHandler) DeleteByID(c *gin.Context) {
+	// Проверка роли
+	roleVal, exists := c.Get("userRole")
+	role, ok := roleVal.(string)
+	if !exists || !ok || role != "admin" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
+		return
+	}
+
+	// Парсинг id
+	idStr := c.Param("id")
+	reviewID, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil || reviewID <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid review id"})
+		return
+	}
+
+	// Контекст с таймаутом
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	// Вызов сервиса
+	if err := h.Repo.DeleteByID(ctx, reviewID); err != nil {
+		switch {
+		case errors.Is(err, erors.ErrInvalidInput):
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			return
+		case errors.Is(err, erors.ErrNotFound):
+			c.JSON(http.StatusNotFound, gin.H{"error": "review not found"})
+			return
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			return
+		}
+	}
+
+	c.Status(http.StatusNoContent)
 }

@@ -76,6 +76,7 @@ func (a Api) InitRoutes() *gin.Engine {
 		// Админ-создание отелей и комнат
 		admin.POST("/hotels", a.hotelHandler.Create)
 		admin.POST("/rooms", a.roomHandler.Create)
+		admin.DELETE("/reviews/:id", a.reviewHandler.DeleteByID)
 	}
 
 	favorites := router.Group("/favorites", a.authMiddleware.RequireAuth())

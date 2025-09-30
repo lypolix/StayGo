@@ -1,9 +1,10 @@
 package services
 
 import (
-    "context"
-    "backend/internal/models"
-    "backend/internal/repos"
+	"backend/internal/erors"
+	"backend/internal/models"
+	"backend/internal/repos"
+	"context"
 )
 
 type ReviewService struct {
@@ -20,4 +21,12 @@ func (s *ReviewService) AddReview(ctx context.Context, review models.Review) err
 
 func (s *ReviewService) ListReviews(ctx context.Context, roomID int64) ([]models.Review, error) {
     return s.repo.List(roomID)
+}
+
+func (s *ReviewService) DeleteByID(ctx context.Context, reviewID int64) error {
+	if reviewID <= 0 {
+		return erors.ErrInvalidInput
+	}
+	// Пробрасываем доменные ошибки репозитория без лишних оберток
+	return s.repo.DeleteByID(ctx, reviewID)
 }

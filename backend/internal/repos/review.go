@@ -1,8 +1,11 @@
 package repos
 
 import (
-    "database/sql"
-    "backend/internal/models"
+	"backend/internal/erors"
+	"backend/internal/models"
+	"context"
+	"database/sql"
+	"fmt"
 )
 
 type ReviewRepo struct {
@@ -38,4 +41,21 @@ func (r *ReviewRepo) List(roomID int64) ([]models.Review, error) {
         reviews = append(reviews, review)
     }
     return reviews, nil
+}
+
+
+func (r *ReviewRepo) DeleteByID(ctx context.Context, reviewID int64) error {
+	const q = `DELETE FROM reviews WHERE id = $1`
+	res, err := r.DB.ExecContext(ctx, q, reviewID)
+	if err != nil {
+		return fmt.Errorf("delete review: exec: %w", err)
+	}
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("delete review: affected: %w", err)
+	}
+	if affected == 0 {
+		return erors.ErrNotFound
+	}
+	return nil
 }
