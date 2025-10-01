@@ -177,7 +177,7 @@ curl "http://localhost:8080/rooms/search?city=Moscow&guests=2&checkin=2024-12-01
 
 Добавить друга по email
 
-```bash
+```
 curl -X POST http://localhost:8080/users/friends \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"email":"friend@example.com"}'
@@ -192,7 +192,7 @@ curl -H "Authorization: Bearer $TOKEN" http://localhost:8080/users/friends
 Получить рекомендации друзей
 ```
 
-```bash
+```
 curl -H "Authorization: Bearer $TOKEN" http://localhost:8080/users/recommend
 ```
 ---
