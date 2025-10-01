@@ -1,14 +1,16 @@
 package handlers
 
 import (
-	
+	"backend/internal/erors"
 	"backend/internal/models"
 	"backend/internal/services"
 	"context"
+	"errors"
+	"strings"
 
 	"net/http"
 	"strconv"
-	
+
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -72,5 +74,29 @@ func (h HotelHandler) GetByID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, hotel)
 }
+
+func (h HotelHandler) ListByCity(c *gin.Context) {
+    city := c.Query("city")
+    if strings.TrimSpace(city) == "" {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "city query parameter is required"})
+        return
+    }
+
+    ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+    defer cancel()
+
+    hotels, err := h.hotelServ.ListByCity(ctx, city)
+    if err != nil {
+        switch {
+        case errors.Is(err, erors.ErrInvalidInput):
+            c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+        default:
+            c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        }
+        return
+    }
+    c.JSON(http.StatusOK, hotels)
+}
+
 
 

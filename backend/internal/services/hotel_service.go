@@ -1,17 +1,18 @@
 package services
 
 import (
-
+	"backend/internal/erors"
 	"backend/internal/models"
 	"backend/internal/repos"
 	"context"
-
+	"strings"
 )
 
 type HotelServiceInterface interface {
 	CreateHotel(ctx context.Context, hotel *models.Hotel) error
 	GetAll(ctx context.Context) ([]models.Hotel, error)
 	GetByID(ctx context.Context, hotelID int64) (models.Hotel, error)
+	ListByCity(ctx context.Context, city string) ([]models.Hotel, error) 
 }
 
 type hotelService struct {
@@ -34,3 +35,10 @@ func (s hotelService) GetByID(ctx context.Context, hotelID int64) (models.Hotel,
 	return s.hotelRepo.GetByID(ctx, hotelID)
 }
 
+func (s hotelService) ListByCity(ctx context.Context, city string) ([]models.Hotel, error) {
+    city = strings.TrimSpace(city)
+    if city == "" {
+        return nil, erors.ErrInvalidInput
+    }
+    return s.hotelRepo.ListByCity(ctx, city)
+}

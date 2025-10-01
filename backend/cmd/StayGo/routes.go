@@ -53,6 +53,7 @@ func (a Api) InitRoutes() *gin.Engine {
 	hotels := router.Group("/hotels")
 	{
 		hotels.GET("", a.hotelHandler.List)
+		hotels.GET("/search", a.hotelHandler.ListByCity)
 		hotels.GET("/:hotelid", a.hotelHandler.GetByID)
 		hotels.GET("/:hotelid/rooms", a.roomHandler.ListByHotel)
 	}
