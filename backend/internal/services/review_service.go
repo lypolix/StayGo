@@ -38,3 +38,11 @@ func (s *ReviewService) ListByRoomID(ctx context.Context, roomID int64) ([]model
     }
     return s.repo.ListByRoomID(ctx, roomID)
 }
+
+
+func (s *ReviewService) ListByUserID(ctx context.Context, userID int64) ([]models.Review, error) {
+    if userID <= 0 {
+        return nil, erors.ErrInvalidInput
+    }
+    return s.repo.ListByUserID(ctx, userID)
+}

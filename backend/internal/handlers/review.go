@@ -140,3 +140,30 @@ func (h ReviewHandler) ListByRoomID(c *gin.Context) {
 	// Возвращаем все отзывы (свои и чужие) по комнате
 	c.JSON(http.StatusOK, reviews)
 }
+
+
+
+func (h ReviewHandler) ListByUserID(c *gin.Context) {
+    userIDStr := c.Param("userid") // из пути /reviews/users/:userid
+    userID, err := strconv.ParseInt(userIDStr, 10, 64)
+    if err != nil || userID <= 0 {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
+        return
+    }
+
+    ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+    defer cancel()
+
+    reviews, err := h.Repo.ListByUserID(ctx, userID)
+    if err != nil {
+        switch {
+        case errors.Is(err, erors.ErrInvalidInput):
+            c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+        default:
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+        }
+        return
+    }
+
+    c.JSON(http.StatusOK, reviews)
+}

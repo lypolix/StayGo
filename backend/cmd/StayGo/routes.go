@@ -92,6 +92,7 @@ func (a Api) InitRoutes() *gin.Engine {
 	{
 		reviews.POST("", a.reviewHandler.Create)
 		reviews.GET("", a.reviewHandler.List)
+		reviews.GET("/users/:userid", a.reviewHandler.ListByUserID)
 	}
 
 	return router
