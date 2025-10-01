@@ -1,4 +1,3 @@
-
 # StayGo Backend
 
 Сервис для отелей и путешествий с аутентификацией JWT, управлением отелями и комнатами, отзывами, избранным и рекомендациями.
@@ -11,11 +10,12 @@
 ## 🚀 Быстрый старт
 
 ### С использованием Docker 
-
+```
 git clone [(https://github.com/ostrovok-hackathon-2025/staygo.git)](https://github.com/ostrovok-hackathon-2025/staygo.git)
 cd backend
 cp .env.example .env 
 docker compose up --build
+```
 
 Открыть в браузере:
 ```
@@ -25,7 +25,7 @@ Swagger UI: http://localhost:8080/swagger/index.html
 
 ### Локальный запуск без Docker
 
-``
+```
 cd backend
 go mod tidy
 
@@ -75,7 +75,7 @@ SQL‑миграции находятся в директории `migrations` (
 
 ```
 docker compose exec app bash -lc "go run ./cmd/tools/migrate.go up"
-
+```
 
 ---
 
@@ -146,7 +146,6 @@ curl -X POST http://localhost:8080/auth/login
 -H "Content-Type: application/json"
 -d '{"email":"admin@example.com","password":"admin123"}'
 
-text
 
 Получить профиль (с токеном):
 TOKEN="your_jwt_token_here"
