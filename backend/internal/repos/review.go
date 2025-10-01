@@ -25,22 +25,40 @@ func (r *ReviewRepo) Create(review *models.Review) error {
 }
 
 
-func (r *ReviewRepo) List(roomID int64) ([]models.Review, error) {
-    rows, err := r.DB.Query(`SELECT id, room_id, created_at, user_id, description, room_rating, hotel_rating, approved FROM reviews WHERE room_id = $1`, roomID)
-    if err != nil {
-        return nil, err
-    }
-    defer rows.Close()
+func (r *ReviewRepo) ListByUserID(ctx context.Context, userID int64) ([]models.Review, error) {
+	const q = `
+		SELECT id, room_id, created_at, user_id, description, room_rating, hotel_rating, approved
+		FROM reviews
+		WHERE user_id = $1
+		ORDER BY id ASC
+	`
+	rows, err := r.DB.QueryContext(ctx, q, userID)
+	if err != nil {
+		return nil, fmt.Errorf("list reviews by user: query: %w", err)
+	}
+	defer rows.Close()
 
-    var reviews []models.Review
-    for rows.Next() {
-        var review models.Review
-        if err := rows.Scan(&review.ID, &review.RoomID, &review.CreatedAt, &review.UserID, &review.Description, &review.RoomRating, &review.HotelRating, &review.Approved); err != nil {
-            return nil, err
-        }
-        reviews = append(reviews, review)
-    }
-    return reviews, nil
+	var res []models.Review
+	for rows.Next() {
+		var rv models.Review
+		if err := rows.Scan(
+			&rv.ID,
+			&rv.RoomID,
+			&rv.CreatedAt,
+			&rv.UserID,
+			&rv.Description,
+			&rv.RoomRating,
+			&rv.HotelRating,
+			&rv.Approved,
+		); err != nil {
+			return nil, fmt.Errorf("list reviews by user: scan: %w", err)
+		}
+		res = append(res, rv)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("list reviews by user: rows: %w", err)
+	}
+	return res, nil
 }
 
 
@@ -58,4 +76,41 @@ func (r *ReviewRepo) DeleteByID(ctx context.Context, reviewID int64) error {
 		return erors.ErrNotFound
 	}
 	return nil
+}
+
+
+func (r *ReviewRepo) ListByRoomID(ctx context.Context, roomID int64) ([]models.Review, error) {
+	const q = `
+		SELECT id, room_id, created_at, user_id, description, room_rating, hotel_rating, approved
+		FROM reviews
+		WHERE room_id = $1
+		ORDER BY id ASC
+	`
+	rows, err := r.DB.QueryContext(ctx, q, roomID)
+	if err != nil {
+		return nil, fmt.Errorf("list reviews by room: query: %w", err)
+	}
+	defer rows.Close()
+
+	var res []models.Review
+	for rows.Next() {
+		var rv models.Review
+		if err := rows.Scan(
+			&rv.ID,
+			&rv.RoomID,
+			&rv.CreatedAt,
+			&rv.UserID,
+			&rv.Description,
+			&rv.RoomRating,
+			&rv.HotelRating,
+			&rv.Approved,
+		); err != nil {
+			return nil, fmt.Errorf("list reviews by room: scan: %w", err)
+		}
+		res = append(res, rv)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("list reviews by room: rows: %w", err)
+	}
+	return res, nil
 }

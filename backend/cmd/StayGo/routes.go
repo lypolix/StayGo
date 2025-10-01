@@ -62,6 +62,7 @@ func (a Api) InitRoutes() *gin.Engine {
 	{
 		rooms.GET("/:roomid", a.roomHandler.GetByID)
 		rooms.GET("/search", a.roomHandler.Search)
+		rooms.GET("/:roomid/reviews", a.reviewHandler.ListByRoomID)
 	}
 
 	// Защищённые группы

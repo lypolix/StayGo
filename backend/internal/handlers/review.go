@@ -50,20 +50,24 @@ func (h ReviewHandler) Create(c *gin.Context) {
 }
 
 func (h ReviewHandler) List(c *gin.Context) {
-	roomIDStr := c.Query("roomid")
-	if roomIDStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "roomid query parameter is required"})
+	// Достаём текущего пользователя из контекста (middleware уже положил его туда)
+	userIDVal, exists := c.Get("userid")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
-	roomID, err := strconv.ParseInt(roomIDStr, 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid roomid"})
+	userID, ok := userIDVal.(int64)
+	if !ok || userID <= 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 
-	reviews, err := h.Repo.List(roomID)
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	reviews, err := h.Repo.ListByUserID(ctx, userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 	c.JSON(http.StatusOK, reviews)
@@ -107,4 +111,32 @@ func (h ReviewHandler) DeleteByID(c *gin.Context) {
 	}
 
 	c.Status(http.StatusNoContent)
+}
+
+
+func (h ReviewHandler) ListByRoomID(c *gin.Context) {
+	// Имя path-параметра должно совпадать с роутом: ":roomid"
+	roomIDStr := c.Param("roomid")
+	roomID, err := strconv.ParseInt(roomIDStr, 10, 64)
+	if err != nil || roomID <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid room id"})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	reviews, err := h.Repo.ListByRoomID(ctx, roomID)
+	if err != nil {
+		switch {
+		case errors.Is(err, erors.ErrInvalidInput):
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		}
+		return
+	}
+
+	// Возвращаем все отзывы (свои и чужие) по комнате
+	c.JSON(http.StatusOK, reviews)
 }
