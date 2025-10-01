@@ -33,6 +33,16 @@ func getUserId(c *gin.Context) (int64, error) {
 	return id, nil
 }
 
+// GetUserInfo получить профиль текущего пользователя
+// @Summary Получить информацию профиля (текущий пользователь)
+// @Tags users
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {object} models.UserInfoDTO
+// @Failure 401 {object} map[string]string "user authentication required"
+// @Failure 404 {object} map[string]string "user not found"
+// @Failure 500 {object} map[string]string "internal server error"
+// @Router /users/me [get]
 func (u UserHandler) GetUserInfo(c *gin.Context) {
 	userID, err := getUserId(c)
 	if err != nil {
@@ -56,6 +66,19 @@ func (u UserHandler) GetUserInfo(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
+// UpdateUserInfo обновить профиль текущего пользователя
+// @Summary Обновить информацию профиля (текущий пользователь)
+// @Tags users
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param input body models.UserUpdateDTO true "Изменяемые поля"
+// @Success 204 "Обновлено"
+// @Failure 400 {object} map[string]string "invalid body | no fields to update | invalid input | email already taken"
+// @Failure 401 {object} map[string]string "user authentication required"
+// @Failure 404 {object} map[string]string "user not found"
+// @Failure 500 {object} map[string]string "internal server error"
+// @Router /users/me [patch]
 func (u UserHandler) UpdateUserInfo(c *gin.Context) {
 	userID, err := getUserId(c)
 	if err != nil {

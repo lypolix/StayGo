@@ -17,6 +17,18 @@ func NewFavoriteRoomHandler(service services.FavoriteRoomService) FavoriteRoomHa
 	return FavoriteRoomHandler{service: service}
 }
 
+// Add добавить комнату в избранное
+// @Summary Добавить комнату в избранное
+// @Tags favorites
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param input body models.FavoriteRoomDTO true "Данные избранного"
+// @Success 201 "Создано"
+// @Failure 400 {object} map[string]string "invalid body"
+// @Failure 401 {object} map[string]string "user authorization required"
+// @Failure 500 {object} map[string]string "failed to add favorite"
+// @Router /favorites [post]
 func (h FavoriteRoomHandler) Add(c *gin.Context) {
 	userIDVal, exists := c.Get("userid")
 	if !exists {
@@ -42,6 +54,17 @@ func (h FavoriteRoomHandler) Add(c *gin.Context) {
 	c.Status(http.StatusCreated)
 }
 
+// Remove убрать комнату из избранного
+// @Summary Удалить комнату из избранного
+// @Tags favorites
+// @Security BearerAuth
+// @Produce json
+// @Param roomid path int true "ID комнаты"
+// @Success 204 "Удалено"
+// @Failure 400 {object} map[string]string "invalid roomid"
+// @Failure 401 {object} map[string]string "user authorization required"
+// @Failure 500 {object} map[string]string "failed to remove favorite"
+// @Router /favorites/{roomid} [delete]
 func (h FavoriteRoomHandler) Remove(c *gin.Context) {
 	userIDVal, exists := c.Get("userid")
 	if !exists {
@@ -67,6 +90,15 @@ func (h FavoriteRoomHandler) Remove(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
+// List список избранных комнат пользователя
+// @Summary Получить список избранных комнат текущего пользователя
+// @Tags favorites
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {array} int64 "Список ID комнат"
+// @Failure 401 {object} map[string]string "user authorization required"
+// @Failure 500 {object} map[string]string "failed to list favorites"
+// @Router /favorites [get]
 func (h FavoriteRoomHandler) List(c *gin.Context) {
 	userIDVal, exists := c.Get("userid")
 	if !exists {
