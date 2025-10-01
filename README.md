@@ -11,7 +11,7 @@
 
 ### С использованием Docker 
 ```
-git clone [(https://github.com/ostrovok-hackathon-2025/staygo.git)](https://github.com/ostrovok-hackathon-2025/staygo.git)
+git clone https://github.com/ostrovok-hackathon-2025/staygo.git
 cd backend
 cp .env.example .env 
 docker compose up --build
@@ -171,12 +171,14 @@ curl "http://localhost:8080/rooms/search?city=Moscow&guests=2&checkin=2024-12-01
 ## 🛠️ Полезные команды
 
 Обновить зависимости
+```
 go mod tidy
+```
 
 Сгенерировать/обновить Swagger документацию
 ```
 swag init -g ./cmd/StayGo/main.go -o ./docs
-``
+```
 
 Сборка приложения
 ```
