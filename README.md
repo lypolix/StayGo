@@ -75,7 +75,7 @@ SQL‑миграции находятся в директории `migrations` (
 
 ```
 docker compose exec app bash -lc "go run ./cmd/tools/migrate.go up"
-```
+
 
 ---
 
