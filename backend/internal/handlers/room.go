@@ -66,7 +66,7 @@ func (h RoomHandler) Create(c *gin.Context) {
 }
 
 func (h RoomHandler) ListByHotel(c *gin.Context) {
-	hotelIDStr := c.Param("hotel_id")
+	hotelIDStr := c.Param("hotelid")
 	hotelID, err := strconv.ParseInt(hotelIDStr, 10, 64)
 	if err != nil || hotelID <= 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid hotel id"})
