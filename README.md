@@ -186,7 +186,7 @@ curl -X POST http://localhost:8080/users/friends \
 
 Получить список друзей
 
-```bash
+```
 curl -H "Authorization: Bearer $TOKEN" http://localhost:8080/users/friends
 ```
 Получить рекомендации друзей
