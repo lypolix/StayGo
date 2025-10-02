@@ -293,6 +293,28 @@ backend/
 └── go.mod # Зависимости Go
 ```
 
+```
+frontend/
+├── public/                 # Статические файлы
+├── src/
+│   ├── app/               # Store, API, routing
+│   ├── assets/            # Изображения, иконки
+│   ├── components/        # Переиспользуемые компоненты
+│   ├── features/          # Feature-based компоненты
+│   ├── hooks/             # Custom React hooks
+│   ├── shared/            # Общие утилиты и компоненты
+│   ├── styles/            # Глобальные стили и темы
+│   ├── utils/             # Вспомогательные функции
+│   ├── App.tsx            # Корневой компонент
+│   ├── main.tsx           # Точка входа приложения
+│   └── vite-env.d.ts      # Типы Vite
+├── .env                   # Переменные окружения
+├── .env.example           # Пример переменных окружения
+├── .eslintrc.cjs          # Конфигурация ESLint
+├── .prettierrc            # Конфигурация Prettier
+└── package.json           # Зависимости проекта
+```
+
 ---
 
 ## 🔄 Модули системы
