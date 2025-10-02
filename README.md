@@ -15,8 +15,6 @@
 ### С использованием Docker 
 ```
 git clone https://github.com/ostrovok-hackathon-2025/staygo.git
-cd backend
-cp .env.example .env 
 docker compose up --build
 ```
 
