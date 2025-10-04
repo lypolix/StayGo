@@ -1,0 +1,1333 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API для работы с отелями, комнатами, отзывами и избранным",
+        "title": "StayGo Backend API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "basePath": "/",
+    "paths": {
+        "/auth/login": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Логин",
+                "parameters": [
+                    {
+                        "description": "Email и пароль",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.LoginUserDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Пара токенов",
+                        "schema": {
+                            "$ref": "#/definitions/models.AuthResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверные данные запроса",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Неверные учетные данные",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/register": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Регистрация пользователя",
+                "parameters": [
+                    {
+                        "description": "Данные регистрации",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateUserDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "ID созданного пользователя",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверные данные запроса или пользователь уже существует",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/favorites": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "favorites"
+                ],
+                "summary": "Получить список избранных комнат текущего пользователя",
+                "responses": {
+                    "200": {
+                        "description": "Список ID комнат",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer",
+                                "format": "int64"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "user authorization required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "failed to list favorites",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "favorites"
+                ],
+                "summary": "Добавить комнату в избранное",
+                "parameters": [
+                    {
+                        "description": "Данные избранного",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.FavoriteRoomDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Создано"
+                    },
+                    "400": {
+                        "description": "invalid body",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "user authorization required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "failed to add favorite",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/favorites/{roomid}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "favorites"
+                ],
+                "summary": "Удалить комнату из избранного",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID комнаты",
+                        "name": "roomid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Удалено"
+                    },
+                    "400": {
+                        "description": "invalid roomid",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "user authorization required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "failed to remove favorite",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/hotels": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "hotels"
+                ],
+                "summary": "Получить список всех отелей",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Hotel"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to get hotels",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "hotels"
+                ],
+                "summary": "Создать отель",
+                "parameters": [
+                    {
+                        "description": "Данные отеля",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Hotel"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Hotel"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверные данные запроса",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Access denied",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "failed to create hotel",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/hotels/search": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "hotels"
+                ],
+                "summary": "Получить список отелей по городу",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Название города",
+                        "name": "city",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Hotel"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "city query parameter is required | invalid input",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "internal error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/hotels/{hotelid}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "hotels"
+                ],
+                "summary": "Получить отель по ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID отеля",
+                        "name": "hotelid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Hotel"
+                        }
+                    },
+                    "400": {
+                        "description": "invalid hotelid",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "hotel not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/hotels/{hotelid}/rooms": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rooms"
+                ],
+                "summary": "Получить список комнат по ID отеля",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID отеля",
+                        "name": "hotelid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Room"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "invalid hotel id",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "failed to get rooms",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/reviews": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "reviews"
+                ],
+                "summary": "Создать отзыв",
+                "parameters": [
+                    {
+                        "description": "Данные отзыва",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Review"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Review"
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/reviews/me": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "reviews"
+                ],
+                "summary": "Получить отзывы текущего пользователя",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Review"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/reviews/users/{userid}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "reviews"
+                ],
+                "summary": "Получить отзывы по ID пользователя",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID пользователя",
+                        "name": "userid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Review"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "invalid user id | invalid input",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/reviews/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "reviews"
+                ],
+                "summary": "Удалить отзыв по ID (admin)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID отзыва",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Удалено"
+                    },
+                    "400": {
+                        "description": "invalid review id | invalid input",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "access denied",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "review not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/rooms": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rooms"
+                ],
+                "summary": "Создать комнату",
+                "parameters": [
+                    {
+                        "description": "Данные комнаты",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Room"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Room"
+                        }
+                    },
+                    "400": {
+                        "description": "invalid parameters | invalid input | invalid hotel_id",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "access denied",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "internal error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/rooms/search": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rooms"
+                ],
+                "summary": "Поиск комнат по городу, гостям и датам",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Город",
+                        "name": "city",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Количество гостей",
+                        "name": "guests",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Дата заезда (YYYY-MM-DD)",
+                        "name": "checkin",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Дата выезда (YYYY-MM-DD)",
+                        "name": "checkout",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Room"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "city and guests are required | invalid guests | invalid input",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "internal error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/rooms/{roomid}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rooms"
+                ],
+                "summary": "Получить комнату по ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID комнаты",
+                        "name": "roomid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Room"
+                        }
+                    },
+                    "400": {
+                        "description": "invalid room id",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "room not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/rooms/{roomid}/reviews": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "reviews"
+                ],
+                "summary": "Получить список отзывов по ID комнаты",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID комнаты",
+                        "name": "roomid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Review"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "invalid room id | invalid input",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users/me": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Получить информацию профиля (текущий пользователь)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.UserInfoDTO"
+                        }
+                    },
+                    "401": {
+                        "description": "user authentication required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "user not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Обновить информацию профиля (текущий пользователь)",
+                "parameters": [
+                    {
+                        "description": "Изменяемые поля",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UserUpdateDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Обновлено"
+                    },
+                    "400": {
+                        "description": "invalid body | no fields to update | invalid input | email already taken",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "user authentication required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "user not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.AuthResponse": {
+            "description": "Пара токенов доступа и обновления",
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "description": "JWT access token",
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                },
+                "refresh_token": {
+                    "description": "JWT refresh token",
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                }
+            }
+        },
+        "models.CreateUserDTO": {
+            "description": "Данные, необходимые для создания нового пользователя",
+            "type": "object",
+            "properties": {
+                "city": {
+                    "description": "Город пользователя\nrequired: false",
+                    "type": "string",
+                    "example": "Moscow"
+                },
+                "date_of_birth": {
+                    "description": "Дата рождения в формате YYYY-MM-DD\nrequired: false",
+                    "type": "string",
+                    "example": "1998-07-15"
+                },
+                "email": {
+                    "description": "Email пользователя\nrequired: true",
+                    "type": "string",
+                    "example": "alice@example.com"
+                },
+                "name": {
+                    "description": "Имя пользователя\nrequired: true",
+                    "type": "string",
+                    "example": "Alice"
+                },
+                "password": {
+                    "description": "Пароль пользователя (минимум 6 символов)\nrequired: true",
+                    "type": "string",
+                    "example": "Passw0rd!"
+                },
+                "role": {
+                    "description": "Роль пользователя (user/admin)\nrequired: false",
+                    "type": "string",
+                    "example": "user"
+                }
+            }
+        },
+        "models.FavoriteRoomDTO": {
+            "description": "Идентификатор комнаты, которую нужно добавить в избранное",
+            "type": "object",
+            "required": [
+                "roomid"
+            ],
+            "properties": {
+                "roomid": {
+                    "type": "integer",
+                    "minimum": 1
+                }
+            }
+        },
+        "models.Hotel": {
+            "type": "object"
+        },
+        "models.LoginUserDTO": {
+            "description": "Email и пароль для аутентификации",
+            "type": "object",
+            "properties": {
+                "email": {
+                    "description": "Email пользователя\nrequired: true",
+                    "type": "string",
+                    "example": "alice@example.com"
+                },
+                "password": {
+                    "description": "Пароль пользователя\nrequired: true",
+                    "type": "string",
+                    "example": "Passw0rd!"
+                }
+            }
+        },
+        "models.Review": {
+            "description": "Отзыв пользователя о комнате/отеле с оценками и статусом модерации",
+            "type": "object",
+            "properties": {
+                "approved": {
+                    "description": "Статус модерации",
+                    "type": "boolean",
+                    "example": true
+                },
+                "created_at": {
+                    "description": "Дата и время создания в ISO8601",
+                    "type": "string",
+                    "example": "2025-10-01T18:30:00Z"
+                },
+                "description": {
+                    "description": "Текст отзыва",
+                    "type": "string",
+                    "example": "Тихо, чисто, понравилось расположение"
+                },
+                "hotel_rating": {
+                    "description": "Оценка отеля (1-5)",
+                    "type": "integer",
+                    "example": 4
+                },
+                "id": {
+                    "description": "Уникальный идентификатор отзыва",
+                    "type": "integer",
+                    "example": 1001
+                },
+                "room_id": {
+                    "description": "Идентификатор комнаты, к которой относится отзыв",
+                    "type": "integer",
+                    "example": 42
+                },
+                "room_rating": {
+                    "description": "Оценка комнаты (1-5)",
+                    "type": "integer",
+                    "example": 5
+                },
+                "user_id": {
+                    "description": "Идентификатор пользователя, оставившего отзыв",
+                    "type": "integer",
+                    "example": 7
+                }
+            }
+        },
+        "models.Room": {
+            "description": "Информация о комнате, включая вместимость, цену, рейтинг и привязку к отелю",
+            "type": "object",
+            "properties": {
+                "beds": {
+                    "description": "Количество спальных мест",
+                    "type": "integer",
+                    "example": 2
+                },
+                "description": {
+                    "description": "Описание комнаты",
+                    "type": "string",
+                    "example": "Уютный номер с видом на город"
+                },
+                "hotel_id": {
+                    "description": "Идентификатор отеля, к которому относится комната",
+                    "type": "integer",
+                    "example": 101
+                },
+                "id": {
+                    "description": "Уникальный идентификатор комнаты",
+                    "type": "integer",
+                    "example": 2001
+                },
+                "price": {
+                    "description": "Цена за ночь (в целых единицах, например, рублях)",
+                    "type": "integer",
+                    "example": 4500
+                },
+                "rating": {
+                    "description": "Текущий рейтинг комнаты (1-5)",
+                    "type": "integer",
+                    "example": 4
+                }
+            }
+        },
+        "models.UserInfoDTO": {
+            "description": "Публичная информация пользователя без чувствительных полей",
+            "type": "object",
+            "properties": {
+                "city": {
+                    "description": "Город проживания (может отсутствовать)",
+                    "type": "string",
+                    "example": "Moscow"
+                },
+                "created_at": {
+                    "description": "Дата создания аккаунта",
+                    "type": "string",
+                    "example": "2025-09-01T10:20:30Z"
+                },
+                "date_of_birth": {
+                    "description": "Дата рождения (может отсутствовать)",
+                    "type": "string",
+                    "example": "1998-07-15"
+                },
+                "email": {
+                    "description": "Email пользователя",
+                    "type": "string",
+                    "example": "alice@example.com"
+                },
+                "name": {
+                    "description": "Имя пользователя",
+                    "type": "string",
+                    "example": "Alice"
+                }
+            }
+        },
+        "models.UserUpdateDTO": {
+            "description": "Поля, которые можно изменить в профиле",
+            "type": "object",
+            "properties": {
+                "city": {
+                    "description": "Новый город (опционально)",
+                    "type": "string",
+                    "example": "Saint Petersburg"
+                },
+                "email": {
+                    "description": "Новый email пользователя",
+                    "type": "string",
+                    "example": "alice.new@example.com"
+                },
+                "name": {
+                    "description": "Новое имя пользователя",
+                    "type": "string",
+                    "example": "Alice"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

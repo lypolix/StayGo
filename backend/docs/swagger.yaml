@@ -1,0 +1,901 @@
+basePath: /
+definitions:
+  models.AuthResponse:
+    description: Пара токенов доступа и обновления
+    properties:
+      access_token:
+        description: JWT access token
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      refresh_token:
+        description: JWT refresh token
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+    type: object
+  models.CreateUserDTO:
+    description: Данные, необходимые для создания нового пользователя
+    properties:
+      city:
+        description: |-
+          Город пользователя
+          required: false
+        example: Moscow
+        type: string
+      date_of_birth:
+        description: |-
+          Дата рождения в формате YYYY-MM-DD
+          required: false
+        example: "1998-07-15"
+        type: string
+      email:
+        description: |-
+          Email пользователя
+          required: true
+        example: alice@example.com
+        type: string
+      name:
+        description: |-
+          Имя пользователя
+          required: true
+        example: Alice
+        type: string
+      password:
+        description: |-
+          Пароль пользователя (минимум 6 символов)
+          required: true
+        example: Passw0rd!
+        type: string
+      role:
+        description: |-
+          Роль пользователя (user/admin)
+          required: false
+        example: user
+        type: string
+    type: object
+  models.FavoriteRoomDTO:
+    description: Идентификатор комнаты, которую нужно добавить в избранное
+    properties:
+      roomid:
+        minimum: 1
+        type: integer
+    required:
+    - roomid
+    type: object
+  models.Hotel:
+    type: object
+  models.LoginUserDTO:
+    description: Email и пароль для аутентификации
+    properties:
+      email:
+        description: |-
+          Email пользователя
+          required: true
+        example: alice@example.com
+        type: string
+      password:
+        description: |-
+          Пароль пользователя
+          required: true
+        example: Passw0rd!
+        type: string
+    type: object
+  models.Review:
+    description: Отзыв пользователя о комнате/отеле с оценками и статусом модерации
+    properties:
+      approved:
+        description: Статус модерации
+        example: true
+        type: boolean
+      created_at:
+        description: Дата и время создания в ISO8601
+        example: "2025-10-01T18:30:00Z"
+        type: string
+      description:
+        description: Текст отзыва
+        example: Тихо, чисто, понравилось расположение
+        type: string
+      hotel_rating:
+        description: Оценка отеля (1-5)
+        example: 4
+        type: integer
+      id:
+        description: Уникальный идентификатор отзыва
+        example: 1001
+        type: integer
+      room_id:
+        description: Идентификатор комнаты, к которой относится отзыв
+        example: 42
+        type: integer
+      room_rating:
+        description: Оценка комнаты (1-5)
+        example: 5
+        type: integer
+      user_id:
+        description: Идентификатор пользователя, оставившего отзыв
+        example: 7
+        type: integer
+    type: object
+  models.Room:
+    description: Информация о комнате, включая вместимость, цену, рейтинг и привязку
+      к отелю
+    properties:
+      beds:
+        description: Количество спальных мест
+        example: 2
+        type: integer
+      description:
+        description: Описание комнаты
+        example: Уютный номер с видом на город
+        type: string
+      hotel_id:
+        description: Идентификатор отеля, к которому относится комната
+        example: 101
+        type: integer
+      id:
+        description: Уникальный идентификатор комнаты
+        example: 2001
+        type: integer
+      price:
+        description: Цена за ночь (в целых единицах, например, рублях)
+        example: 4500
+        type: integer
+      rating:
+        description: Текущий рейтинг комнаты (1-5)
+        example: 4
+        type: integer
+    type: object
+  models.UserInfoDTO:
+    description: Публичная информация пользователя без чувствительных полей
+    properties:
+      city:
+        description: Город проживания (может отсутствовать)
+        example: Moscow
+        type: string
+      created_at:
+        description: Дата создания аккаунта
+        example: "2025-09-01T10:20:30Z"
+        type: string
+      date_of_birth:
+        description: Дата рождения (может отсутствовать)
+        example: "1998-07-15"
+        type: string
+      email:
+        description: Email пользователя
+        example: alice@example.com
+        type: string
+      name:
+        description: Имя пользователя
+        example: Alice
+        type: string
+    type: object
+  models.UserUpdateDTO:
+    description: Поля, которые можно изменить в профиле
+    properties:
+      city:
+        description: Новый город (опционально)
+        example: Saint Petersburg
+        type: string
+      email:
+        description: Новый email пользователя
+        example: alice.new@example.com
+        type: string
+      name:
+        description: Новое имя пользователя
+        example: Alice
+        type: string
+    type: object
+info:
+  contact: {}
+  description: API для работы с отелями, комнатами, отзывами и избранным
+  title: StayGo Backend API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Email и пароль
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginUserDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Пара токенов
+          schema:
+            $ref: '#/definitions/models.AuthResponse'
+        "400":
+          description: Неверные данные запроса
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Неверные учетные данные
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Логин
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Данные регистрации
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateUserDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: ID созданного пользователя
+          schema:
+            type: integer
+        "400":
+          description: Неверные данные запроса или пользователь уже существует
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Регистрация пользователя
+      tags:
+      - auth
+  /favorites:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список ID комнат
+          schema:
+            items:
+              format: int64
+              type: integer
+            type: array
+        "401":
+          description: user authorization required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: failed to list favorites
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Получить список избранных комнат текущего пользователя
+      tags:
+      - favorites
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Данные избранного
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.FavoriteRoomDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Создано
+        "400":
+          description: invalid body
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: user authorization required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: failed to add favorite
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Добавить комнату в избранное
+      tags:
+      - favorites
+  /favorites/{roomid}:
+    delete:
+      parameters:
+      - description: ID комнаты
+        in: path
+        name: roomid
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Удалено
+        "400":
+          description: invalid roomid
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: user authorization required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: failed to remove favorite
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Удалить комнату из избранного
+      tags:
+      - favorites
+  /hotels:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Hotel'
+            type: array
+        "500":
+          description: Failed to get hotels
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получить список всех отелей
+      tags:
+      - hotels
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Данные отеля
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.Hotel'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Hotel'
+        "400":
+          description: Неверные данные запроса
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Access denied
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: failed to create hotel
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Создать отель
+      tags:
+      - hotels
+  /hotels/{hotelid}:
+    get:
+      parameters:
+      - description: ID отеля
+        in: path
+        name: hotelid
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Hotel'
+        "400":
+          description: invalid hotelid
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: hotel not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получить отель по ID
+      tags:
+      - hotels
+  /hotels/{hotelid}/rooms:
+    get:
+      parameters:
+      - description: ID отеля
+        in: path
+        name: hotelid
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Room'
+            type: array
+        "400":
+          description: invalid hotel id
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: failed to get rooms
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получить список комнат по ID отеля
+      tags:
+      - rooms
+  /hotels/search:
+    get:
+      parameters:
+      - description: Название города
+        in: query
+        name: city
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Hotel'
+            type: array
+        "400":
+          description: city query parameter is required | invalid input
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: internal error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получить список отелей по городу
+      tags:
+      - hotels
+  /reviews:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Данные отзыва
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.Review'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Review'
+        "400":
+          description: bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Создать отзыв
+      tags:
+      - reviews
+  /reviews/{id}:
+    delete:
+      parameters:
+      - description: ID отзыва
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Удалено
+        "400":
+          description: invalid review id | invalid input
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: access denied
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: review not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Удалить отзыв по ID (admin)
+      tags:
+      - reviews
+  /reviews/me:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Review'
+            type: array
+        "401":
+          description: unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Получить отзывы текущего пользователя
+      tags:
+      - reviews
+  /reviews/users/{userid}:
+    get:
+      parameters:
+      - description: ID пользователя
+        in: path
+        name: userid
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Review'
+            type: array
+        "400":
+          description: invalid user id | invalid input
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получить отзывы по ID пользователя
+      tags:
+      - reviews
+  /rooms:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Данные комнаты
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.Room'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Room'
+        "400":
+          description: invalid parameters | invalid input | invalid hotel_id
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: access denied
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: internal error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Создать комнату
+      tags:
+      - rooms
+  /rooms/{roomid}:
+    get:
+      parameters:
+      - description: ID комнаты
+        in: path
+        name: roomid
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Room'
+        "400":
+          description: invalid room id
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: room not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получить комнату по ID
+      tags:
+      - rooms
+  /rooms/{roomid}/reviews:
+    get:
+      parameters:
+      - description: ID комнаты
+        in: path
+        name: roomid
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Review'
+            type: array
+        "400":
+          description: invalid room id | invalid input
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получить список отзывов по ID комнаты
+      tags:
+      - reviews
+  /rooms/search:
+    get:
+      parameters:
+      - description: Город
+        in: query
+        name: city
+        required: true
+        type: string
+      - description: Количество гостей
+        in: query
+        name: guests
+        required: true
+        type: integer
+      - description: Дата заезда (YYYY-MM-DD)
+        in: query
+        name: checkin
+        type: string
+      - description: Дата выезда (YYYY-MM-DD)
+        in: query
+        name: checkout
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Room'
+            type: array
+        "400":
+          description: city and guests are required | invalid guests | invalid input
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: internal error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Поиск комнат по городу, гостям и датам
+      tags:
+      - rooms
+  /users/me:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UserInfoDTO'
+        "401":
+          description: user authentication required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: user not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Получить информацию профиля (текущий пользователь)
+      tags:
+      - users
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Изменяемые поля
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserUpdateDTO'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Обновлено
+        "400":
+          description: invalid body | no fields to update | invalid input | email
+            already taken
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: user authentication required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: user not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Обновить информацию профиля (текущий пользователь)
+      tags:
+      - users
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
